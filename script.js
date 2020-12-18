@@ -1,3 +1,15 @@
+
+$(".gear").hover(function(){
+    $("#gear-icon").addClass("fa-spin");
+    $("#gear-icon").css("color", "#39ffff");
+
+})
+
+$(".gear").mouseleave(function(){
+    $("#gear-icon").removeClass("fa-spin");
+    $("#gear-icon").css("color", "rgb(181, 240, 255)");
+
+})
 let root = document.documentElement;
 var geojson;
 var markers;
@@ -99,12 +111,16 @@ function getMarker(d) {
     }
     return geojsonFeatureMarker;            
 }
+
+
+
 var mymap = L.map('mapid').setView([37.8, -96], 3.5);
+mymap.setMaxBounds(mymap.getBounds());
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
 	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
 	subdomains: 'abcd',
-    maxZoom: 6,
-    minZoom: 4,
+    maxZoom: 7,
+    minZoom: 5,
     id: 'mapbox/streets-v11',
     tileSize: 512,
     zoomOffset: -1
@@ -137,7 +153,7 @@ markers= L.geoJson(markerStates, {
         
     },
     pointToLayer: function(feature, latlng) {
-       
+       console.log( feature.properties.number);
         return new L.marker(latlng, { 
            
             icon: L.divIcon({
