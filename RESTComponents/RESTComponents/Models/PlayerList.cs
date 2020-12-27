@@ -22,18 +22,31 @@ namespace RESTComponents.Models
 
         public Player Find(int key)
         {
-            throw new NotImplementedException();
+            Player tmpPlayer;
+            players.TryGetValue(key, out tmpPlayer);
+            return tmpPlayer;
         }
 
         public List<Player> GetPlayers()
         {
-            throw new NotImplementedException();
+            return players.Values.ToList();
         }
 
         public Player Remove(int key)
         {
-            throw new NotImplementedException();
+            Player tmpPlayer;
+            players.TryGetValue(key, out tmpPlayer);
+            if (players.Remove(key))
+            {
+                return tmpPlayer;
+            }
+            return null;
         }
+        void Update(Player tmpPlayer)
+        {
+           players[tmpPlayer.Id] = tmpPlayer;
+        }
+       
     }
-
+   
 }

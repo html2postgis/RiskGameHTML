@@ -7,5 +7,8 @@ namespace RESTComponents.Helpers
 {
     public class Territory
     {
+        public int Id { get; set; }
+        public int PlayerID { get; set; }
+        public int Troops { get; set; }
     }
 }
