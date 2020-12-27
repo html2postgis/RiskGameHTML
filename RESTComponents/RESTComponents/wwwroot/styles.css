@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
 * {
-    font-family: 'Ubuntu', sans-serif;
+    font-family: 'Ubuntu', sans-serif; /*Karol's favourite font XD*/
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -16,14 +16,6 @@ height: 100%;
     background-color: grey;
 
 }
-/* .map-container{
-    width: 100%;
-    height: 500px;
-    position: relative;
-    border: 1px solid black;
-} */
-
-
 
 .nav-buttons{
     display: flex;
@@ -71,7 +63,6 @@ height: 100%;
 
 .turn-container{
     flex-direction: column;
-    /* border: 5px solid #cfdcec; */
     border: 5px solid rgba(255, 71, 71, 0.637);
     height: 135px;
     background-color: #12232ec7;
@@ -144,7 +135,6 @@ height: 100%;
 }
 .gear{
   margin-right: -20px;
-  /* border: 10px solid #cfdcec; */
   border: 10px solid rgba(255, 71, 71, 0.767);
   border-radius: 50%;
   height: 110px;
@@ -159,7 +149,6 @@ height: 100%;
   margin-left: -20px;
   overflow: hidden;
   position: relative;
-  /* border: 10px solid #cfdcec; */
   border: 10px solid rgba(255, 71, 71, 0.767);
   border-radius: 50%;
   height: 110px;
