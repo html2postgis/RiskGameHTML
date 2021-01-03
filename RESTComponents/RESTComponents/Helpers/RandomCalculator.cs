@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 
 namespace RESTComponents.Helpers
 {
-    public class BattleCalculator
+    public class RandomCalculator
     {
-		public void calculations(int attack, int defence)
+		public List<List<int>> calculateWinner(int attack, int defence)
 		{
 			var rnd = new Random();
 			var attackers = new List<int>();
@@ -21,7 +21,7 @@ namespace RESTComponents.Helpers
 			{
 				defencors.Add(-1);
 			}
-			while (attackers != null && defencors != null)
+			while (attackers.Count !=0 && defencors.Count != 0)
 			{
 				// it will return attackers.Count if  attackers.Count < 3
 				var partOfAttackers = attackers.Take(3).ToList();
@@ -48,8 +48,7 @@ namespace RESTComponents.Helpers
                 {
 					for (int k = 0; k < partOfAttackers.Count ; k++)
 					{
-						if (partOfAttackers[k] <= partOfDefencors[k])
-							result.Add(0);
+						
 						if (k>=partOfDefencors.Count)
                         {
 							for (int j = 0; j < partOfAttackers.Count - partOfDefencors.Count; j++)
@@ -57,7 +56,9 @@ namespace RESTComponents.Helpers
 								result.Add(1);
 							}
 						}
-						else
+						else if (partOfAttackers[k] <= partOfDefencors[k])
+							result.Add(0);
+						else 
 							result.Add(1);
 					}
 				}
@@ -65,16 +66,17 @@ namespace RESTComponents.Helpers
 				{
 					for (int i = 0; i < partOfDefencors.Count; i++)
 					{
-						if (partOfAttackers[i] <= partOfDefencors[i])
-							result.Add(0);
 						
-						else if (i >= partOfAttackers.Count)
+						
+						if (i >= partOfAttackers.Count)
 						{
 							for (int j = 0; j < partOfDefencors.Count - partOfAttackers.Count ; j++)
 							{
 								result.Add(0);
 							}
 						}
+						else if (partOfAttackers[i] <= partOfDefencors[i])
+							result.Add(0);
 						else
 							result.Add(1);
 					}
@@ -95,11 +97,59 @@ namespace RESTComponents.Helpers
 						partOfDefencors.RemoveAt(i);
 					}
 				}
-				attackers.AddRange(partOfAttackers);
-				defencors.AddRange(partOfDefencors);
+				if (partOfAttackers.Count !=0)
+					attackers.AddRange(partOfAttackers);
+				if (partOfDefencors.Count != 0)
+					defencors.AddRange(partOfDefencors);
 
 
 			}
+			var resultList = new List<List<int>>();
+			resultList.Add(attackers);
+			resultList.Add(defencors);
+			return resultList;
+		}
+		public int[] generatePlayersTerritory ()
+        {
+			int[] arrA = new int[40];
+			Random random = new Random();
+
+			for (int i = 0; i <= arrA.Length - 1; i++)
+			{
+				var number = random.Next(1, 41);
+				while (arrA.Any(n => n == number))
+				{
+					number = random.Next(1, 41);
+				}
+
+				arrA[i] = number;
+				
+			}
+			return arrA;
+		}
+		public Dictionary<string,int> initialTroopsDeploy(int[] number_of_territories, int numOfTroops)
+		{
+		
+			Random rnd = new Random();
+			List<int> res = new List<int>();
+			for (int i = 0; i < number_of_territories.Length; i++)
+			{
+				res.Add(number_of_territories[i]);
+			}
+			for (int i = 0; i < numOfTroops; i++)
+            {
+				res.Add(number_of_territories[rnd.Next(1, number_of_territories.Length)]);
+            }
+
+			var g = res.GroupBy(i => i);
+			var dic = new Dictionary<string, int>();
+			foreach(var grp in g)
+			{
+				dic.Add(grp.Key.ToString(), grp.Count());
+				 
+			}
+			return dic;
+
 		}
 	}
 }

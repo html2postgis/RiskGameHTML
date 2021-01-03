@@ -41,7 +41,7 @@ height: 100%;
   border: 2px solid black;
   text-align: center;
   color: black;
-  background-color:var(color);
+  background-color:var(--color);
   font-size: 15px;
   color: rgb(0, 0, 0);
   text-shadow: 0px 1px black;
@@ -119,10 +119,12 @@ height: 100%;
     background-color: rgb(148, 148, 148);
     margin-left: 2px;
 }
-.active{
+.active {
     background-color: rgb(252, 44, 44);
 }
-
+/*.active {
+    background-color: rgb(252, 44, 44);
+}*/
 .turn-level-btn{
     height: 20px;
     width: 60px;

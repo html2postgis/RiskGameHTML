@@ -16,6 +16,6 @@ namespace RESTComponents.Models
         // Removes player when all teritories are lost
         Player Remove(int key);
         // Updates all troop number for player
-        void Update(Player player);
+        //void Update(Player player);
     }
 }
