@@ -9,102 +9,54 @@ var listOfPlayers = [
     { Name: 'Buffor', Troops: 30, Id: 3 }
 ];
 
-var actualTurn = [
-    1,
-    0,
-    0
-];
-function changeToRed() {
-    var cols = document.getElementsByClassName('active');
-    for (i = 0; i < cols.length; i++) {
-        cols[i].style.backgroundColor = 'red';
-    }
-}
-function changeToOrange() {
-    var cols = document.getElementsByClassName('active');
-    for (i = 0; i < cols.length; i++) {
-        cols[i].style.backgroundColor = 'orange';
-    }
-}
-function changeToGreen() {
-    var cols = document.getElementsByClassName('active');
-    for (i = 0; i < cols.length; i++) {
-        cols[i].style.backgroundColor = 'green';
-    }
-}
-function changeToGray() {
-    var cols = document.getElementsByClassName('active');
-    for (i = 0; i < cols.length; i++) {
-        cols[i].style.backgroundColor = 'gray';
-    }
-}
-function whichPhaseItIs(listOfTurns) {
+var actualTurn = 0;
+var TurnColors = ["red", "orange", "green"];
 
+function changeColor(playerColor) {
+    var cols = document.getElementsByClassName('active');
+    for (i = 0; i < cols.length; i++) {
+        cols[i].style.backgroundColor = playerColor;
+    }
+}
+
+function whichPhaseItIs(listOfTurns) {
+    changeColor("gray");
     if ($("#deploy-turn-label").hasClass('active')) {
-        console.log("hejka");
-        changeToGray();
+        
         $("#deploy-turn-label").removeClass('active');
         $("#attk-turn-label").addClass('active');
-        
-        if (actualTurn[0]) {
-            changeToRed();
-            //$(".active").css("background-color", "rgb(252, 44, 44)");
-        } else if (actualTurn[1]) {
-            changeToOrange()
-            //$(".active").css("background-color", "rgb(255,140,0)");
-        } else {
-            changeToGreen()
-            //$(".active").css("background-color", "rgb(50,205,50)");
-        }
+
+      
         
     }
     else if ($("#attk-turn-label").hasClass('active')) {
-        changeToGray();
+        
         $("#attk-turn-label").removeClass('active');
         $("#fortify-turn-label").addClass('active');
         
-        if (actualTurn[0]) {
-            changeToRed();
-            //$(".active").css("background-color", "rgb(252, 44, 44)");
-        } else if (actualTurn[1]) {
-            changeToOrange()
-            //$(".active").css("background-color", "rgb(255,140,0)");
-        } else {
-            changeToGreen()
-            //$(".active").css("background-color", "rgb(50,205,50)");
-        }
+       
     }
     else if ($("#fortify-turn-label").hasClass('active')) {
-        changeToGray();
+        
         $("#fortify-turn-label").removeClass('active');
         $("#deploy-turn-label").addClass('active');
-        if (actualTurn[0]) {
-            actualTurn[0] = 0;
-            actualTurn[1] = 1;
+        switch (actualTurn) {
+            case 0:
+                actualTurn = 1;
+                break;
+            case 1:
+                actualTurn = 2;
+                break;
+            case 2:
+                actualTurn = 0;
+                break;
         }
-        else if (actualTurn[1]) {
-            actualTurn[1] = 0;
-            actualTurn[2] = 1;
-        }
-        else{
-            actualTurn[2] = 0;
-            actualTurn[0] = 1;
-        }
-        if (actualTurn[0]) {
-            changeToRed();
-            //$(".active").css("background-color", "rgb(252, 44, 44)");
-        } else if (actualTurn[1]) {
-            changeToOrange()
-            //$(".active").css("background-color", "rgb(255,140,0)");
-        } else {
-            changeToGreen()
-            //$(".active").css("background-color", "rgb(50,205,50)");
-        }
+       
       
            
     }
     
-       
+    changeColor(TurnColors[actualTurn]);
 }
 
 
