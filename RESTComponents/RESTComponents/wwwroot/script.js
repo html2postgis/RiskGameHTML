@@ -14,20 +14,24 @@ var TurnColors = ["red", "orange", "green"];
 
 function changeColor(playerColor) {
     var cols = document.getElementsByClassName('active');
+    var gearCol = document.getElementsByClassName('gear');
+    var wraperCol = document.getElementsByClassName('wrapper');
+    var turnCol = document.getElementsByClassName('turn-container');
+    var personBkg = document.getElementsByClassName('turn-info');
     for (i = 0; i < cols.length; i++) {
         cols[i].style.backgroundColor = playerColor;
     }
+    gearCol[0].style.borderColor = playerColor;
+    wraperCol[0].style.borderColor = playerColor;
+    turnCol[0].style.borderColor = playerColor;
+    personBkg[0].style.backgroundColor = playerColor;
 }
 
 function whichPhaseItIs(listOfTurns) {
     changeColor("gray");
     if ($("#deploy-turn-label").hasClass('active')) {
-        
         $("#deploy-turn-label").removeClass('active');
         $("#attk-turn-label").addClass('active');
-
-      
-        
     }
     else if ($("#attk-turn-label").hasClass('active')) {
         
