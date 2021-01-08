@@ -135,6 +135,7 @@ namespace RESTComponents.Helpers
 			for (int i = 0; i < number_of_territories.Length; i++)
 			{
 				res.Add(number_of_territories[i]);
+				Console.WriteLine(number_of_territories[i]);
 			}
 			for (int i = 0; i < numOfTroops; i++)
             {

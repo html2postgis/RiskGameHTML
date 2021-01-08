@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using RESTComponents.Models;
+using RESTComponents.Helpers;
 
 namespace RESTComponents
 {
@@ -28,7 +29,8 @@ namespace RESTComponents
         {
             services.AddControllers();
             services.AddSingleton<IPlayerList, PlayerList>();
-            
+            services.AddSingleton<ITerritoryList, TerritoryList>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

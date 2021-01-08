@@ -14,13 +14,18 @@ namespace RESTComponents.Controllers
     [ApiController]
     public class DiceController : ControllerBase
     {
-        
-        
+        public ITerritoryList _territoryList;
+        // GET: api/<FormSubmitController>
+        public DiceController(ITerritoryList territoryList)
+        {
+            _territoryList = territoryList;
+        }
+
         // GET: api/<DiceController>
         [HttpGet("{action}")]
         public List<List<int>> GetWinner1()
         {
-            return new RandomCalculator().calculateWinner(10,3);
+            return new RandomCalculator().calculateWinner(10, 3);
         }
         // GET: api/<DiceController>
         [HttpGet("{action}")]
@@ -34,16 +39,35 @@ namespace RESTComponents.Controllers
         {
             return new RandomCalculator().generatePlayersTerritory();
         }
+       
+        [HttpPost("{action}")]
+        public IActionResult PostInitialTerritories([FromBody] int[] myarray)
+        {
+            for(int i =0;i < myarray.Length;i++)
+            {
+            _territoryList.AddTerritory(new Territory { Id = myarray[i], PlayerID = 1, Troops = 0 });
+
+            }
+            Console.WriteLine("Action1");
+            return Created("", myarray);
+        }
         // GET: api/<DiceController>
         [HttpGet("{action}")]
-        public Dictionary<string,int> GetInitialTroops()
+        public Dictionary<string, int> GetInitialTroops()
         {
             int players = 3;
             int numOfTerritory = 40;
-            int divisor =13;
-            
+            int divisor = 13;
+
             var res = new Dictionary<string, Dictionary<string, int>>();
-            var allOfTerritories = new RandomCalculator().generatePlayersTerritory().ToList();
+            // var allOfTerritories = new RandomCalculator().generatePlayersTerritory().ToList();
+            var allOfTerritories = new List<int>();
+            for (int i =0; i<  _territoryList.GetTerritories().Count;i++)
+            {
+                allOfTerritories.Add(_territoryList.GetTerritories()[i].Id);
+            }
+          
+            
             var abba = new RandomCalculator();
             Dictionary<string, int> meh = new Dictionary<string, int>();
             for (int i = 0; i < players; i++)
@@ -52,54 +76,53 @@ namespace RESTComponents.Controllers
 
                 if (i != players - 1)
                 {
-                    foreach (var a in abba.initialTroopsDeploy(allOfTerritories.Take(13).ToArray(),30-13))
+                    foreach (var a in abba.initialTroopsDeploy(allOfTerritories.Take(13).ToArray(), 30 - 13))
                     {
-                        meh.Add(a.Key,a.Value);
+                        meh.Add(a.Key, a.Value);
 
                     }
 
-                   allOfTerritories.RemoveRange(0, 13);
+                    allOfTerritories.RemoveRange(0, 13);
                 }
                 else
                 {
-                    foreach (var a in abba.initialTroopsDeploy(allOfTerritories.ToArray(),30-14))
+                    foreach (var a in abba.initialTroopsDeploy(allOfTerritories.ToArray(), 30 - 14))
                     {
                         meh.Add(a.Key, a.Value);
                     }
 
-                    
+
                 }
 
 
             }
-            
+
             return meh.Keys.OrderBy(k => Int32.Parse(k)).ToDictionary(k => k, k => meh[k]);
         }
-    //    // GET api/<DiceController>/5
-    //    [HttpGet("{id}")]
-    //    public string Get(int id)
-    //    {
-    //        return "value";
-    //    }
-       
-    //// POST api/<DiceController>
-    //[HttpPost]
-    //    public void Post([FromBody] string value)
-    //    {
-    //    }
+        //    // GET api/<DiceController>/5
+        //    [HttpGet("{id}")]
+        //    public string Get(int id)
+        //    {
+        //        return "value";
+        //    }
 
-    //    // PUT api/<DiceController>/5
-    //    [HttpPut("{id}")]
-    //    public void Put(int id, [FromBody] string value)
-    //    {
-    //    }
+        //// POST api/<DiceController>
+        //[HttpPost]
+        //    public void Post([FromBody] string value)
+        //    {
+        //    }
 
-    //    // DELETE api/<DiceController>/5
-    //    [HttpDelete("{id}")]
-    //    public void Delete(int id)
-    //    {
-    //    }
+        //    // PUT api/<DiceController>/5
+        //    [HttpPut("{id}")]
+        //    public void Put(int id, [FromBody] string value)
+        //    {
+        //    }
+
+        //    // DELETE api/<DiceController>/5
+        //    [HttpDelete("{id}")]
+        //    public void Delete(int id)
+        //    {
+        //    }
     }
 }
 
-    

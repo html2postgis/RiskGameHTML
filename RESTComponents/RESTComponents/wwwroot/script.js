@@ -2,9 +2,13 @@
 let root = document.documentElement;
 var isStateSelected = 0;
 var prevSelectedPolygon;
+var prevSelectedPoint;
 var geojson;
 var markers;
+var arrow = null;
+var arrowHead = null;
 var markerStates = [];
+
 var listOfPlayers = [
     { Name: 'Player1', Troops: 30, Id: 1, Color: "red"  },
     { Name: 'Player2', Troops: 30, Id: 2, Color:"orange"},
@@ -43,7 +47,10 @@ function whichPhaseItIs(listOfTurns) {
         changePhaseName("Attack");
     }
     else if ($("#attk-turn-label").hasClass('active')) {
-        
+        if (arrow != null) {
+            mymap.removeLayer(arrow);
+            mymap.removeLayer(arrowHead);
+        }
         $("#attk-turn-label").removeClass('active');
         $("#fortify-turn-label").addClass('active');
         changePhaseName("Fortify");
@@ -86,10 +93,15 @@ $(".gear").mouseleave(function(){
     $("#gear-icon").css("color", "rgb(181, 240, 255)");
 
 })
-
-$(".wrapper").click(function () {
+$(".gear").click(function () {
     
-    whichPhaseItIs();
+})
+$(".wrapper").click(function () {
+   
+    
+                            
+    //getMatrixofNgb();
+   whichPhaseItIs();
 })
 //return d > 40 ? '#0275d8' :
 //    d > 30 ? '#f0ad4e' :
@@ -148,17 +160,16 @@ function zoomToFeature(e) {
     //let obj = listOfPlayers.find(o => o.Name === currentPlayer.innerHTML);
     //let tmpgearCol = document.getElementsByClassName('gear');
     //let index = findWithAttr(listOfPlayers, "Name", currentPlayer.innerHTML);
-   // console.log(e.target.toGeoJSON());
-    //console.log(prevSelectedPolygon);
+    
+   
     var intersects = null;
-    var mytime1;
     var mytime2;
     if (prevSelectedPolygon != undefined) {
         console.log("prev:", prevSelectedPolygon);
         if (prevSelectedPolygon.geometry.type == "Polygon" && e.target.feature.geometry.type == "Polygon") {
             intersects = turf.intersect(e.target.toGeoJSON(), prevSelectedPolygon);
         }
-        else if (prevSelectedPolygon.geometry.type == "MultiPolygon") {
+        else if (prevSelectedPolygon.geometry.type == "Polygon") {
             mytime2 = turf.explode(e.target.toGeoJSON());
 
             intersects = turf.pointsWithinPolygon(mytime2, prevSelectedPolygon.geometry);
@@ -171,19 +182,30 @@ function zoomToFeature(e) {
         
        
     }
-       
-    //console.log(currentPlayer.innerHTML);
-    //console.log(e.target.feature.properties.player);
     console.log(intersects);
-    //console.log(tmpgearCol[0].style.backgroundColor);
+    if (arrow != null) {
+        mymap.removeLayer(arrow);
+        mymap.removeLayer(arrowHead);
+        geojson.resetStyle(e.target);
+    }
     if ($("#attk-turn-label").hasClass('active') ) {
         if (isStateSelected == 1 && e.target.feature.properties.color != prevSelectedPolygon.properties.color && e.target.feature.properties.player != currentPlayer.innerHTML && intersects!=null ) {
-            lat = e.latlng.lat;
-            lon = e.latlng.lng;
-            //console.log(lat, lon);
+            
+            e.target.feature.properties.color = JSON.parse(JSON.stringify(prevSelectedPolygon.properties.color));
+            e.target.feature.properties.player = JSON.parse(JSON.stringify(currentPlayer.innerHTML));
+            geojson.resetStyle(e.target);
             isStateSelected = 0;
             console.log("You attacked this territory", e.target.feature.id);
+            arrow = L.polyline([prevSelectedPoint, e.latlng]).addTo(mymap);
+            arrowHead = L.polylineDecorator(arrow, {
+                patterns: [
+                    {
+                        offset: '100%',
+                        repeat: 0,
+                        symbol: L.Symbol.arrowHead({ pixelSize: 15, polygon: false, pathOptions: { stroke: true } })
 
+                    }]
+            }).addTo(mymap);
 
         }
         else if (e.target.feature.properties.player == currentPlayer.innerHTML) {
@@ -191,17 +213,82 @@ function zoomToFeature(e) {
             console.log("0");
             console.log("Place from where attack is coming",e.target);
             prevSelectedPolygon = JSON.parse(JSON.stringify(e.target.feature));
+            prevSelectedPoint = JSON.parse(JSON.stringify(e.latlng));
             isStateSelected = 1;
         } else {
             mymap.fitBounds(e.target.getBounds());
             isStateSelected = 0
         }
+        var count = 0;
+
+        
+    }
+    else if ($("#fortify-turn-label").hasClass('active')){
+
+        mymap.fitBounds(e.target.getBounds())
     }
     else {
         mymap.fitBounds(e.target.getBounds());
     }
-}
+    for (var i = 0; i < statesData.features.length; i++) {
 
+        if (statesData.features[i].properties.player == e.target.feature.properties.player) {
+            count++;
+        }
+    }
+    if (count == 40) {
+        alert("GAME OVER.\n" + e.target.feature.properties.player + " won the war!!!");
+        location.reload(true);
+    }
+    
+    
+}
+var returnMatrix = [];
+function getMatrixofNgb() {
+    
+    for (var i = 0; i < statesData.features.length; i++) {
+        
+        
+        returnMatrix[i] = new Array(statesData.features.length);
+        for (var k = 0; k < statesData.features.length; k++) {
+            var intersects = null;
+            if (statesData.features[k].id == statesData.features[i].id) {
+                returnMatrix[i][k] = -1;
+            }
+            
+            else {
+                if (statesData.features[k].geometry.type == "Polygon" && statesData.features[i].geometry.type == "Polygon") {
+                    
+                    intersects = turf.intersect(statesData.features[i], statesData.features[k]);
+                }
+                else if (statesData.features[k].geometry.type == "Polygon") {
+                    
+                    temporary = turf.explode(statesData.features[i]);
+                    intersects = turf.pointsWithinPolygon(temporary, statesData.features[k]);
+                }
+                else if (statesData.features[k].geometry.type = "MultiPolygon") {
+                    
+                    temporary = turf.explode(statesData.features[i]);
+                    intersects = turf.pointsWithinPolygon(temporary, statesData.features[k]);
+                }
+            }
+            if (intersects == null) {
+                returnMatrix[i][k] = -1;
+            }
+            else {
+                if (statesData.features[k].properties.player != statesData.features[i].properties.player) {
+                    returnMatrix[i][k] = 0;
+                }
+                else {
+                    returnMatrix[i][k] = 1;
+                }
+            }
+        }
+        
+        
+    }
+    console.log(returnMatrix);
+}
 function onEachFeature(feature, layer) {
     layer.on({
         mouseover: highlightFeature,
@@ -210,6 +297,7 @@ function onEachFeature(feature, layer) {
     });
   
 }
+
 function getTroopsMarker(d) {
     var geojsonFeatureMarker;
     if(d.geometry.type=="Polygon")
@@ -258,22 +346,51 @@ function getTroopsMarker(d) {
     }
     return geojsonFeatureMarker;            
 }
-var counter1 = 0;
+function getNewColor(tmp) {
+    return tmp=='Player2' ? '#f0ad4e' :
+        tmp=='Player1' ? '#d9534f' :
+            '#5cb85c';
+
+}
 function tmpAssign(tmpID) {
-    return tmpID > 39 ? 'nobody' :
-        tmpID > 29 ? 'Player2' :
-            tmpID > 19 ? 'Player1' :
-                'Buffer';}
+    return tmpID > 40 ? 'nobody' :
+        tmpID > 30 ? 'Player2' :
+            tmpID > 20 ? 'Player1' :
+                'Buffer';
+}
+var counter1 = 0;
+
 for (var i = 0; i < statesData.features.length; i++)
 {
     statesData.features[i].properties.numnum = counter1;
     statesData.features[i].properties.color = getColor(statesData.features[i].id);
     var tmpID = statesData.features[i].id;
     statesData.features[i].properties.player = tmpAssign(tmpID);
-  
     counter1 = counter1 + 2;
+    
 }
 
+//for (var i = 0; i < initialTerritories; i++) {
+//    switch (i) {
+//        case i < 13:
+//            statesData.features[initialTerritories[i]].player = 'Player1';
+//            statesData.features[initialTerritories[i]].properties.color = getNewColor('Player1');
+//            break;
+//        case i < 26:
+//            statesData.features[initialTerritories[i]].player = 'Player2';
+//            statesData.features[initialTerritories[i]].properties.color = getNewColor('Player2');
+//            break;
+//        default:
+//            statesData.features[initialTerritories[i]].player = 'Buffer';
+//            statesData.features[initialTerritories[i]].properties.color = getNewColor('Buffor');
+
+//    }
+//    statesData.features[i].properties.numnum = initialTroopsNum[i.toString];
+    
+    
+
+//}
+console.log(statesData.features[0]);
 // set view 
 var mymap = L.map('mapid')
     .setView([37.8, -96], 3.5);
@@ -295,9 +412,6 @@ geojson = L.geoJson(statesData, {
     onEachFeature: onEachFeature
 }).addTo(mymap);
 
-//mymap.on('click', function (e) {
-
-//});  
 
 var numberIcon = L.divIcon({
       className: 'my-custom-icon',
