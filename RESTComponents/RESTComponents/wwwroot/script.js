@@ -8,6 +8,10 @@ var markers;
 var arrow = null;
 var arrowHead = null;
 var markerStates = [];
+const FIRST_LAYER = 109; // created to search through markers in geojson
+var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
+var TurnColors = ["red", "orange", "green"];
+
 
 var listOfPlayers = [
     { Name: 'Player1', Troops: 30, Id: 1, Color: "red"  },
@@ -45,6 +49,7 @@ function whichPhaseItIs(listOfTurns) {
         $("#deploy-turn-label").removeClass('active');
         $("#attk-turn-label").addClass('active');
         changePhaseName("Attack");
+        PLAYER_PHASE = 1;
     }
     else if ($("#attk-turn-label").hasClass('active')) {
         if (arrow != null) {
@@ -54,7 +59,7 @@ function whichPhaseItIs(listOfTurns) {
         $("#attk-turn-label").removeClass('active');
         $("#fortify-turn-label").addClass('active');
         changePhaseName("Fortify");
-       
+        PLAYER_PHASE = 2;
     }
     else if ($("#fortify-turn-label").hasClass('active')) {
         
@@ -72,7 +77,7 @@ function whichPhaseItIs(listOfTurns) {
                 break;
         }
         changePhaseName("Deploy");
-       
+        PLAYER_PHASE = 0;
       
            
     }
@@ -146,6 +151,18 @@ function resetHighlight(e) {
     geojson.resetStyle(e.target);
     
 }
+
+// GET PROPER MARKER ID WHEN SEARCHING FROM LAYERS
+function getMarkerId(marker_id) {
+    return FIRST_LAYER + (marker_id == 1 ? 0 : marker_id);
+}
+
+function addTroopsToTerritory(marker_id) {
+    //Increase troop number on marker and assign new value
+    var temp = String(parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1);
+    markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
+}
+
 function findWithAttr(array, attr, value) {
     for (var i = 0; i < array.length; i += 1) {
         if (array[i][attr] === value) {
@@ -155,13 +172,43 @@ function findWithAttr(array, attr, value) {
     return -1;
 }
 
+function PolygonClickEventHandler(e) {
+    
+}
+
+
+
+
 function zoomToFeature(e) {
     var currentPlayer = document.getElementById("turn-info-person");
     //let obj = listOfPlayers.find(o => o.Name === currentPlayer.innerHTML);
     //let tmpgearCol = document.getElementsByClassName('gear');
     //let index = findWithAttr(listOfPlayers, "Name", currentPlayer.innerHTML);
     
-   
+    if (PLAYER_PHASE == 0) {
+        let marker_id = parseInt(e.target.feature.id);
+        switch (actualTurn) {
+            case 0:
+                if (marker_id > 20 && marker_id <= 30)
+                    addTroopsToTerritory(marker_id);
+                break;
+            case 1:
+                if (marker_id > 30 && marker_id <= 40)
+                    addTroopsToTerritory(marker_id);
+                break;
+            case 2:
+                if (marker_id <= 20)
+                    addTroopsToTerritory(marker_id);
+                break;
+        }
+
+    }
+    //else if (PLAYER_PHASE == 1) {
+    //    //ATTACK PHASE HANDLER
+    //}
+    //else if (PLAYER_PHASE == 2) {
+    //    //FORTIFY PHASE HANDLER
+    //}
     var intersects = null;
     var mytime2;
     if (prevSelectedPolygon != undefined) {
@@ -308,7 +355,7 @@ function getTroopsMarker(d) {
             "type": "Feature",
             "properties": {
                 "color": getColor(d.id),
-                "number": d.id
+                "number": String(parseInt(d.id))
             },
             "geometry": {
                 "type": "Point",
@@ -336,7 +383,7 @@ function getTroopsMarker(d) {
             "type": "Feature",
             "properties": {
                 "color": getColor(d.id),
-                "number": d.id
+                "number": String(parseInt(d.id))
             },
             "geometry": {
                 "type": "Point",
