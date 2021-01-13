@@ -8,6 +8,10 @@ var markers;
 var arrow = null;
 var arrowHead = null;
 var markerStates = [];
+const FIRST_LAYER = 109; // created to search through markers in geojson
+
+var TurnColors = ["red", "orange", "green"];
+
 
 var listOfPlayers = [
     { Name: 'Player1', Troops: 30, Id: 1, Color: "red"  },
@@ -45,6 +49,7 @@ function whichPhaseItIs(listOfTurns) {
         $("#deploy-turn-label").removeClass('active');
         $("#attk-turn-label").addClass('active');
         changePhaseName("Attack");
+        
     }
     else if ($("#attk-turn-label").hasClass('active')) {
         if (arrow != null) {
@@ -54,7 +59,7 @@ function whichPhaseItIs(listOfTurns) {
         $("#attk-turn-label").removeClass('active');
         $("#fortify-turn-label").addClass('active');
         changePhaseName("Fortify");
-       
+        
     }
     else if ($("#fortify-turn-label").hasClass('active')) {
         
@@ -72,7 +77,7 @@ function whichPhaseItIs(listOfTurns) {
                 break;
         }
         changePhaseName("Deploy");
-       
+        
       
            
     }
@@ -116,6 +121,7 @@ function getColor(d) {
 }
 
 function style(feature) {
+    console.log("fea", feature.properties.color);
     return {
         fillColor: feature.properties.color,
         weight: 2,
@@ -146,6 +152,18 @@ function resetHighlight(e) {
     geojson.resetStyle(e.target);
     
 }
+
+// GET PROPER MARKER ID WHEN SEARCHING FROM LAYERS
+function getMarkerId(marker_id) {
+    return FIRST_LAYER + (marker_id == 1 ? 0 : marker_id);
+}
+
+function addTroopsToTerritory(marker_id) {
+    //Increase troop number on marker and assign new value
+    var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1;
+    markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
+}
+
 function findWithAttr(array, attr, value) {
     for (var i = 0; i < array.length; i += 1) {
         if (array[i][attr] === value) {
@@ -155,13 +173,16 @@ function findWithAttr(array, attr, value) {
     return -1;
 }
 
+
+
+
+
 function zoomToFeature(e) {
     var currentPlayer = document.getElementById("turn-info-person");
     //let obj = listOfPlayers.find(o => o.Name === currentPlayer.innerHTML);
     //let tmpgearCol = document.getElementsByClassName('gear');
     //let index = findWithAttr(listOfPlayers, "Name", currentPlayer.innerHTML);
     
-   
     var intersects = null;
     var mytime2;
     if (prevSelectedPolygon != undefined) {
@@ -182,7 +203,7 @@ function zoomToFeature(e) {
         
        
     }
-    console.log(intersects);
+   
     if (arrow != null) {
         mymap.removeLayer(arrow);
         mymap.removeLayer(arrowHead);
@@ -228,7 +249,21 @@ function zoomToFeature(e) {
         mymap.fitBounds(e.target.getBounds())
     }
     else {
-        mymap.fitBounds(e.target.getBounds());
+        let marker_id = parseInt(e.target.feature.id);
+        switch (actualTurn) {
+            case 0:
+                if (marker_id > 20 && marker_id <= 30)
+                    addTroopsToTerritory(marker_id);
+                break;
+            case 1:
+                if (marker_id > 30 && marker_id <= 40)
+                    addTroopsToTerritory(marker_id);
+                break;
+            case 2:
+                if (marker_id <= 20)
+                    addTroopsToTerritory(marker_id);
+                break;
+        }
     }
     for (var i = 0; i < statesData.features.length; i++) {
 
@@ -308,7 +343,7 @@ function getTroopsMarker(d) {
             "type": "Feature",
             "properties": {
                 "color": getColor(d.id),
-                "number": d.id
+                "number": d.properties.troops
             },
             "geometry": {
                 "type": "Point",
@@ -336,7 +371,7 @@ function getTroopsMarker(d) {
             "type": "Feature",
             "properties": {
                 "color": getColor(d.id),
-                "number": d.id
+                "number": d.properties.troops
             },
             "geometry": {
                 "type": "Point",
@@ -358,16 +393,14 @@ function tmpAssign(tmpID) {
             tmpID > 20 ? 'Player1' :
                 'Buffer';
 }
-var counter1 = 0;
 
 for (var i = 0; i < statesData.features.length; i++)
 {
-    statesData.features[i].properties.numnum = counter1;
+    
     statesData.features[i].properties.color = getColor(statesData.features[i].id);
     var tmpID = statesData.features[i].id;
     statesData.features[i].properties.player = tmpAssign(tmpID);
-    counter1 = counter1 + 2;
-    
+   
 }
 
 //for (var i = 0; i < initialTerritories; i++) {

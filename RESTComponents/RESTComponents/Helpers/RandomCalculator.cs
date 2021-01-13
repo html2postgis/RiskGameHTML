@@ -152,5 +152,30 @@ namespace RESTComponents.Helpers
 			return dic;
 
 		}
+		public List<int> initialTroopsDeploy2(int[] number_of_territories, int numOfTroops)
+		{
+
+			Random rnd = new Random();
+			List<int> res = new List<int>();
+			for (int i = 0; i < number_of_territories.Length; i++)
+			{
+				res.Add(number_of_territories[i]);
+				
+			}
+			for (int i = 0; i < numOfTroops; i++)
+			{
+				res.Add(number_of_territories[rnd.Next(1, number_of_territories.Length)]);
+			}
+
+			var g = res.GroupBy(i => i);
+			var dic = new Dictionary<string, int>();
+			foreach (var grp in g)
+			{
+				dic.Add(grp.Key.ToString(), grp.Count());
+
+			}
+			return dic.Values.ToList();
+
+		}
 	}
 }

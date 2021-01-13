@@ -26,6 +26,7 @@ height: 100%;
 }
 
 #mapid{
+
     height: 840px;
     display: flex;
     flex-direction: column;

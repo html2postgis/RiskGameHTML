@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using RESTComponents.Models;
 using RESTComponents.Helpers;
 
+
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace RESTComponents.Controllers
@@ -20,7 +21,37 @@ namespace RESTComponents.Controllers
         {
             _territoryList = territoryList;
         }
-
+        //[HttpPost("{action}")]
+        //public IActionResult AddInitialTerritory([FromBody] Territory territory)
+        //{
+            
+        //    _territoryList.AddTerritory(territory);
+        //    var ordered = _territoryList.GetTerritories().OrderBy(o => o.Id).ToList();
+        //    var newList = new TerritoryList();
+        //    foreach(var item in ordered)
+        //    {
+        //        newList.AddTerritory(item);
+        //    }
+        //    _territoryList = newList;
+        //    Console.WriteLine("Action1");
+        //    return Created("", territory);
+        //}
+        //[HttpPost("{action}")]
+        //public IActionResult AddInitialList([FromBody] List<Territory> territories)
+        //{
+        //    foreach (var item in territories)
+        //    {
+        //        _territoryList.AddTerritory(item);
+        //    }
+            
+        //    Console.WriteLine("Action1");
+        //    return Created("", territories);
+        //}
+        [HttpGet("{action}")]
+        public List<Territory> GetAllTerritories()
+        {
+            return _territoryList.GetTerritories();
+        }
         // GET: api/<DiceController>
         [HttpGet("{action}")]
         public List<List<int>> GetWinner1()
@@ -45,7 +76,7 @@ namespace RESTComponents.Controllers
         {
             for(int i =0;i < myarray.Length;i++)
             {
-            _territoryList.AddTerritory(new Territory { Id = myarray[i], PlayerID = 1, Troops = 0 });
+            _territoryList.AddJustInt(new Territory { Id = myarray[i], PlayerName="", Troops = 0 });
 
             }
             Console.WriteLine("Action1");
@@ -53,7 +84,7 @@ namespace RESTComponents.Controllers
         }
         // GET: api/<DiceController>
         [HttpGet("{action}")]
-        public Dictionary<string, int> GetInitialTroops()
+        public List<int> GetInitialTroops()
         {
             int players = 3;
             int numOfTerritory = 40;
@@ -70,15 +101,16 @@ namespace RESTComponents.Controllers
             
             var abba = new RandomCalculator();
             Dictionary<string, int> meh = new Dictionary<string, int>();
+            var meh2 = new List<int>();
             for (int i = 0; i < players; i++)
             {
                 numOfTerritory = numOfTerritory - divisor;
 
                 if (i != players - 1)
                 {
-                    foreach (var a in abba.initialTroopsDeploy(allOfTerritories.Take(13).ToArray(), 30 - 13))
+                    foreach (var a in abba.initialTroopsDeploy2(allOfTerritories.Take(13).ToArray(), 30 - 13))
                     {
-                        meh.Add(a.Key, a.Value);
+                        meh2.Add(a);
 
                     }
 
@@ -86,9 +118,9 @@ namespace RESTComponents.Controllers
                 }
                 else
                 {
-                    foreach (var a in abba.initialTroopsDeploy(allOfTerritories.ToArray(), 30 - 14))
+                    foreach (var a in abba.initialTroopsDeploy2(allOfTerritories.ToArray(), 30 - 14))
                     {
-                        meh.Add(a.Key, a.Value);
+                        meh2.Add(a);
                     }
 
 
@@ -96,8 +128,8 @@ namespace RESTComponents.Controllers
 
 
             }
-
-            return meh.Keys.OrderBy(k => Int32.Parse(k)).ToDictionary(k => k, k => meh[k]);
+            return meh2;
+            //return meh.Keys.OrderBy(k => Int32.Parse(k)).ToDictionary(k => k, k => meh[k]);
         }
         //    // GET api/<DiceController>/5
         //    [HttpGet("{id}")]
