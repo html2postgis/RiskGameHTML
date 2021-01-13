@@ -9,7 +9,7 @@ var arrow = null;
 var arrowHead = null;
 var markerStates = [];
 const FIRST_LAYER = 109; // created to search through markers in geojson
-
+var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
 var TurnColors = ["red", "orange", "green"];
 
 
