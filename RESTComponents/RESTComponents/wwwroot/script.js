@@ -21,12 +21,81 @@ var listOfPlayers = [
 
 var actualTurn = 0;
 
+//New game button event handler - transition between game menu and game map
+$("#new-game-button").click(function () {
+    document.getElementById("game-menu").style.display = "none";
+    document.getElementById("map-container").style.display = "inline";
+    mapInit();
+})
+
+
+// This function instantiates the map after the New Game button is pressed. IMPORTANT - without it there are bugs in deploy phase.
+function mapInit() {
+    var mymap = L.map('mapid')
+        .setView([37.8, -96], 3.5);
+    // setting bounds(disallowing moving outside of the US)
+    mymap.setMaxBounds(mymap.getBounds());
+    mymap.doubleClickZoom.disable();
+    // set all layers
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 7,
+        minZoom: 5,
+        id: 'mapbox/streets-v11',
+        tileSize: 512,
+        zoomOffset: -1
+    }).addTo(mymap);
+    geojson = L.geoJson(statesData, {
+        style: style,
+        onEachFeature: onEachFeature
+    }).addTo(mymap);
+
+
+    var numberIcon = L.divIcon({
+        className: 'my-custom-icon',
+        html: "5",
+        iconSize: [25, 41],
+        iconAnchor: [10, 44],
+        popupAnchor: [3, -40]
+    });
+
+
+    // get centers to draw markers on all polygons
+    for (var i = 0; i < statesData.features.length; i++) {
+        markerStates.push(getTroopsMarker(statesData.features[i]));
+
+    }
+
+    markers = L.geoJson(markerStates, {
+        style: function (feature) {
+
+            return root.style.setProperty('color', feature.properties.color);
+
+        },
+        pointToLayer: function (feature, latlng) {
+
+            return new L.marker(latlng, {
+
+                icon: L.divIcon({
+                    className: 'my-custom-icon',
+                    html: feature.properties.number
+
+                })
+
+            });
+        }
+    }).addTo(mymap);
+}
+
+
 function changeColor(playerColor) {
     var cols = document.getElementsByClassName('active');
     var gearCol = document.getElementsByClassName('gear');
     var wraperCol = document.getElementsByClassName('wrapper');
     var turnCol = document.getElementsByClassName('turn-container');
     var personBkg = document.getElementsByClassName('turn-info');
+    //var troopcounter = document.getElementsByClassName('turn-info');
     for (i = 0; i < cols.length; i++) {
         cols[i].style.backgroundColor = playerColor;
     }
@@ -35,6 +104,7 @@ function changeColor(playerColor) {
     turnCol[0].style.borderColor = playerColor;
     personBkg[0].style.backgroundColor = playerColor;
 }
+
 function changePlayersName(player) {
     var pNameContainer = document.getElementById("turn-info-person");
     pNameContainer.innerHTML = player;
@@ -43,12 +113,15 @@ function changePhaseName(phase) {
     var phaseContainer = document.getElementById("phase-info");
     phaseContainer.innerHTML = phase;
 }
+
+//Updates UI - changes colors of bars, changes phase label and modifies turn variables
 function whichPhaseItIs(listOfTurns) {
     changeColor("gray");
     if ($("#deploy-turn-label").hasClass('active')) {
         $("#deploy-turn-label").removeClass('active');
         $("#attk-turn-label").addClass('active');
         changePhaseName("Attack");
+        document.getElementById("troop-count-container").style.display = "none";
         
     }
     else if ($("#attk-turn-label").hasClass('active')) {
@@ -77,7 +150,7 @@ function whichPhaseItIs(listOfTurns) {
                 break;
         }
         changePhaseName("Deploy");
-        
+        document.getElementById("troop-count-container").style.display = "flex";
       
            
     }
@@ -86,32 +159,22 @@ function whichPhaseItIs(listOfTurns) {
     changePlayersName(listOfPlayers[actualTurn].Name);
 }
 
-
+// spinning of the options button
 $(".gear").hover(function () {
     $("#gear-icon").addClass("fa-spin");
     $("#gear-icon").css("color", "#39ffff");
 
 })
-
+// spinning of the options button
 $(".gear").mouseleave(function(){
     $("#gear-icon").removeClass("fa-spin");
     $("#gear-icon").css("color", "rgb(181, 240, 255)");
-
 })
-$(".gear").click(function () {
-    
-})
-$(".wrapper").click(function () {
-   
-    
-                            
-    //getMatrixofNgb();
+//change turn button click event handler
+$(".wrapper").click(function () {                        
    whichPhaseItIs();
 })
-//return d > 40 ? '#0275d8' :
-//    d > 30 ? '#f0ad4e' :
-//        d > 20 ? '#d9534f' :
-//            '#5cb85c';
+
 function getColor(d) {
     return d > 40 ? '#0275d8' :
            d > 30  ? '#f0ad4e' :
@@ -425,60 +488,5 @@ for (var i = 0; i < statesData.features.length; i++)
 //}
 console.log(statesData.features[0]);
 // set view 
-var mymap = L.map('mapid')
-    .setView([37.8, -96], 3.5);
-// setting bounds(disallowing moving outside of the US)
-mymap.setMaxBounds(mymap.getBounds());
-mymap.doubleClickZoom.disable(); 
-// set all layers
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
-	attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-	subdomains: 'abcd',
-    maxZoom: 7,
-    minZoom: 5,
-    id: 'mapbox/streets-v11',
-    tileSize: 512,
-    zoomOffset: -1
-}).addTo(mymap);
-geojson = L.geoJson(statesData, {
-    style: style,
-    onEachFeature: onEachFeature
-}).addTo(mymap);
 
-
-var numberIcon = L.divIcon({
-      className: 'my-custom-icon',
-      html: "5",
-      iconSize: [25, 41],
-      iconAnchor: [10, 44],
-      popupAnchor: [3, -40]    
-});
-
-
-// get centers to draw markers on all polygons
-for(var i = 0; i< statesData.features.length;i++)
-{
-    markerStates.push(getTroopsMarker(statesData.features[i]));
-   
-}
-
-markers= L.geoJson(markerStates, {
-    style: function(feature) {
-       
-        return root.style.setProperty('color', feature.properties.color);
-        
-    },
-    pointToLayer: function(feature, latlng) {
-       
-        return new L.marker(latlng, { 
-           
-            icon: L.divIcon({
-                className: 'my-custom-icon',
-                html: feature.properties.number
-                
-            })
-            
-        });
-    }
-}).addTo(mymap);
 
