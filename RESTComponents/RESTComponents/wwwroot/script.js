@@ -12,11 +12,10 @@ const FIRST_LAYER = 109; // created to search through markers in geojson
 var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
 var TurnColors = ["red", "orange", "green"];
 
-
 var listOfPlayers = [
-    { Name: 'Player1', Troops: 30, Id: 1, Color: "red"  },
-    { Name: 'Player2', Troops: 30, Id: 2, Color:"orange"},
-    { Name: 'Buffor', Troops: 30, Id: 3, Color: "green" }
+    { Name: 'Buffor', Troops: 30, Id: 1, Color: "red"  },
+    { Name: 'Player1', Troops: 30, Id: 2, Color:"orange"},
+    { Name: 'Player2', Troops: 30, Id: 3, Color: "green" }
 ];
 
 var actualTurn = 0;
@@ -31,6 +30,7 @@ $("#new-game-button").click(function () {
 
 // This function instantiates the map after the New Game button is pressed. IMPORTANT - without it there are bugs in deploy phase.
 function mapInit() {
+
     var mymap = L.map('mapid')
         .setView([37.8, -96], 3.5);
     // setting bounds(disallowing moving outside of the US)
@@ -86,7 +86,12 @@ function mapInit() {
             });
         }
     }).addTo(mymap);
+    GetPlayerMaxTroops(actualTurn);
 }
+
+
+
+
 
 
 function changeColor(playerColor) {
@@ -113,6 +118,48 @@ function changePhaseName(phase) {
     var phaseContainer = document.getElementById("phase-info");
     phaseContainer.innerHTML = phase;
 }
+
+
+function GetPlayerMaxTroops(Id) {
+    var result;
+    $.ajax({
+        url: "Player/GetPlayerTroopLimit/" + Id,
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            document.getElementById("troop-count").innerHTML = response;
+        },
+        error: function (response) {
+            //console.warn('error', response);
+            document.getElementById("troop-count").innerHTML = 0;
+
+        }
+    })
+
+}
+
+function assignTroopToMarker(marker_id) {
+    $.ajax({
+        url: "Player/GetPlayerTerList/" + actualTurn,
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function (response) {
+            for (let i = 0; i < response.length ; ++i){
+                if (marker_id == response[i].id) {
+                    addTroopsToTerritory(marker_id);
+                }
+            }
+        },
+        error: function (response) {
+            console.warn('error', response);
+
+        }
+    })
+}
+
+
 
 //Updates UI - changes colors of bars, changes phase label and modifies turn variables
 function whichPhaseItIs(listOfTurns) {
@@ -151,7 +198,7 @@ function whichPhaseItIs(listOfTurns) {
         }
         changePhaseName("Deploy");
         document.getElementById("troop-count-container").style.display = "flex";
-      
+        GetPlayerMaxTroops(actualTurn);
            
     }
     
@@ -179,12 +226,11 @@ function getColor(d) {
     return d > 40 ? '#0275d8' :
            d > 30  ? '#f0ad4e' :
            d > 20  ? '#d9534f' :
-                    '#5cb85c';
-                      
+                    '#5cb85c';             
 }
 
 function style(feature) {
-    console.log("fea", feature.properties.color);
+    //console.log("fea", feature.properties.color);
     return {
         fillColor: feature.properties.color,
         weight: 2,
@@ -224,6 +270,8 @@ function getMarkerId(marker_id) {
 function addTroopsToTerritory(marker_id) {
     //Increase troop number on marker and assign new value
     var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1;
+    let number = parseInt(document.getElementById("troop-count").innerHTML) - 1;
+    document.getElementById("troop-count").innerHTML = number;
     markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
 }
 
@@ -313,20 +361,9 @@ function zoomToFeature(e) {
     }
     else {
         let marker_id = parseInt(e.target.feature.id);
-        switch (actualTurn) {
-            case 0:
-                if (marker_id > 20 && marker_id <= 30)
-                    addTroopsToTerritory(marker_id);
-                break;
-            case 1:
-                if (marker_id > 30 && marker_id <= 40)
-                    addTroopsToTerritory(marker_id);
-                break;
-            case 2:
-                if (marker_id <= 20)
-                    addTroopsToTerritory(marker_id);
-                break;
-        }
+        if (parseInt(document.getElementById("troop-count").innerHTML) <= 0) return;
+        assignTroopToMarker(marker_id);
+        
     }
     for (var i = 0; i < statesData.features.length; i++) {
 

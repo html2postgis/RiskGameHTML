@@ -13,5 +13,10 @@ namespace RESTComponents.Models
         public int Troops { get; set; }
         public List<Territory> territories { get; set; }
         
+        public Player()
+        {
+            territories = new List<Territory>();
+        }
+        
     }
 }

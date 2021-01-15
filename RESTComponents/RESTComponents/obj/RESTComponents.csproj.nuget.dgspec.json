@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mjlem\\OneDrive\\Documents\\GitHub\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj": {}
+    "C:\\Users\\karol\\RiskGameHTML\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj": {}
   },
   "projects": {
-    "C:\\Users\\mjlem\\OneDrive\\Documents\\GitHub\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj": {
+    "C:\\Users\\karol\\RiskGameHTML\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mjlem\\OneDrive\\Documents\\GitHub\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj",
+        "projectUniqueName": "C:\\Users\\karol\\RiskGameHTML\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj",
         "projectName": "RESTComponents",
-        "projectPath": "C:\\Users\\mjlem\\OneDrive\\Documents\\GitHub\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj",
-        "packagesPath": "C:\\Users\\mjlem\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mjlem\\OneDrive\\Documents\\GitHub\\RiskGameHTML\\RESTComponents\\RESTComponents\\obj\\",
+        "projectPath": "C:\\Users\\karol\\RiskGameHTML\\RiskGameHTML\\RESTComponents\\RESTComponents\\RESTComponents.csproj",
+        "packagesPath": "C:\\Users\\karol\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\karol\\RiskGameHTML\\RiskGameHTML\\RESTComponents\\RESTComponents\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\mjlem\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\karol\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -26,7 +26,6 @@
         },
         "frameworks": {
           "netcoreapp3.1": {
-            "targetAlias": "netcoreapp3.1",
             "projectReferences": {}
           }
         },
@@ -38,7 +37,6 @@
       },
       "frameworks": {
         "netcoreapp3.1": {
-          "targetAlias": "netcoreapp3.1",
           "imports": [
             "net461",
             "net462",
@@ -57,7 +55,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.101\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.403\\RuntimeIdentifierGraph.json"
         }
       }
     }
