@@ -19,4 +19,11 @@ namespace RESTComponents.Models
         }
         
     }
+    public class helper
+    {
+        public int attackerid { get; set; }
+        public int defenderid { get; set; }
+        public int territoryid { get; set; }
+    }
+
 }

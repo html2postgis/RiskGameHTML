@@ -39,11 +39,30 @@
                 </div>
             </div>
             <div id="map-container">
+                
                 <div id="mapid">
+                    <div id="fortify-slider-container">
+                        <div class="troops-span">
+                            <span class="troops-text">Choose the number of troops to relocate.</span>
+                        </div>
+                        <div class="buttons-holder">
+                            <button id="cross-button"></button>
+                            <div class="slider-cont">
+                                <input id="fortify-slider" type="range" value="0" max="10" min="0" oninput="slider_value.value = this.value">
+                                <div id="output-container">
+                                    <output id="slider_min">0</output>
+                                    <output id="slider_value">0</output>
+                                    <output id="slider_max">5</output>
+                                </div>
+                            </div>
+                            <button id="forward-button"></button>
+                        </div>
+                    </div>
                     <div id="troop-count-container" class="leaflet-top">
                         <span class="troop-label">TROOPS LEFT:&nbsp</span>
                         <span id="troop-count" class="troop-label"></span>
                     </div>
+                    
                     <div class="nav-buttons leaflet-bottom">
                         <div class="gear leaflet-control">
                             <button id="options"><i id="gear-icon" style="font-size:80px; margin-top:4px;margin-left: 15px; color: rgb(181, 240, 255);" class="fa">&#xf013;</i></button>
@@ -58,7 +77,7 @@
                             </div>
 
                             <div class="turn-info">
-                                <span id="turn-info-person">Buffor</span>
+                                <span id="turn-info-person">Player1</span>
                             </div>
                         </div>
                         <div class="wrapper leaflet-control">

@@ -13,30 +13,36 @@ namespace RESTComponents.Models
         Object locker = new Object();
         public PlayerList()
         {
-            Player buffor = new Player();
-            for(int i = 21; i <= 30; i++)
+            int[] ll = { 1, 3, 11, 13, 15, 19, 20, 21, 30, 33, 34, 36, 37 };
+            List<int> pt = new List<int>(ll);
+            Player player1 = new Player();
+            for(int i = 0; i < pt.Count; i++)
             {
                 Territory t = new Territory();
-                t.Id = i;
-                buffor.territories.Add(t);
-            }
-            AddPlayer(buffor);
-            Player player1 = new Player();
-            for (int i = 31; i <= 40; i++)
-            {
-                Territory t1 = new Territory();
-                t1.Id = i;
-                player1.territories.Add(t1);
+                t.Id = pt[i];
+                player1.territories.Add(t);
             }
             AddPlayer(player1);
+            int[] ll1 = {4,5,6,14,17,22,23,24,25,27,28,32,40};
+            List<int> pt1 = new List<int>(ll1);
             Player player2 = new Player();
-            for (int i = 0; i <= 20; i++)
+            for (int i = 0; i < pt1.Count; i++)
             {
-                Territory t2 = new Territory();
-                t2.Id = i;
-                player2.territories.Add(t2);
+                Territory t1 = new Territory();
+                t1.Id = pt1[i];
+                player2.territories.Add(t1);
             }
             AddPlayer(player2);
+            int[] ll2 = {2,7,8,9,10,12,16,18,26,29,31,35,38,39 };
+            List<int> pt2 = new List<int>(ll2);
+            Player buffor = new Player();
+            for (int i = 0; i < pt2.Count; i++)
+            {
+                Territory t2 = new Territory();
+                t2.Id = pt2[i];
+                buffor.territories.Add(t2);
+            }
+            AddPlayer(buffor);
 
         }
         public bool AddPlayer(Player newPlayer)

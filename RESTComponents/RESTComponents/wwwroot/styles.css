@@ -43,6 +43,70 @@ img {
     justify-content: center;
 }
 
+#fortify-slider-container {
+    display: none; /* Hidden by default */
+    position:relative;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    bottom:-300px;
+    width:500px;
+    height:200px;
+    background-color: rgba(0,0,0,0.8);
+    z-index: 1000000; /* Specify a stack order in case you're using a different order for other elements */
+    cursor: pointer; /* Add a pointer on hover */
+}
+
+.buttons-holder{
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    align-items:center;
+}
+.troops-text {
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+.slider-cont {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+}
+
+#output-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-content: space-around;
+    width:220px;
+    color:white;
+    font-size:20px;
+    font-weight:bold;
+
+}
+
+#forward-button{
+    background: url(forward-button.png);
+    background-position:center;
+    background-repeat:no-repeat;
+    background-size:contain;
+    height:50px;
+    width:50px;
+}
+
+#cross-button {
+    background: url(cross-button.png);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    height: 50px;
+    width: 50px;
+}
+
+
 .menu-button {
     font-size: 32px;
     padding: 0.35em 1.2em;

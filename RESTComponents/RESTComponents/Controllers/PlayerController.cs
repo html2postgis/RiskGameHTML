@@ -40,26 +40,26 @@ namespace RESTComponents.Controllers
         {
             return _playerList.GetPlayers()[id].territories.Count/3;
         }
-        [HttpPut("RemovePlayerTerr/{id}")]
-        public IActionResult RemovePlayerTerr(int id,[FromBody] int terr_id)
+     
+       
+        [HttpPost("{action}")]
+        public IActionResult AddPlayerTerr([FromBody]helper help)
         {
-            foreach (var temp in _playerList.GetPlayers()[id].territories)
+            Territory ter = new Territory();
+            ter.Id = help.territoryid;
+            _playerList.GetPlayers()[help.attackerid-1].territories.Add(ter);
+
+
+            //subtract
+            foreach (var temp in _playerList.GetPlayers()[help.defenderid - 1].territories)
             {
-                if (temp.Id == terr_id)
+                if (temp.Id == help.territoryid)
                 {
-                    _playerList.GetPlayers()[id].territories.Remove(temp);
+                    _playerList.GetPlayers()[help.defenderid-1].territories.Remove(temp);
                     break;
                 }
             }
-            return Ok(terr_id);
-        }
-        [HttpPut("AddPlayerTerr/{id}")]
-        public IActionResult AddPlayerTerr(int id, [FromBody] int terr_id)
-        {
-            Territory ter = new Territory();
-            ter.Id = terr_id;
-            _playerList.GetPlayers()[id].territories.Add(ter);
-            return Ok(terr_id);
+            return Ok(help);
         }
 
     }
