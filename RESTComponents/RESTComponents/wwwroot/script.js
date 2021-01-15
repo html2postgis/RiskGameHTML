@@ -3,6 +3,7 @@ let root = document.documentElement;
 var isStateSelected = 0;
 var prevSelectedPolygon;
 var prevSelectedPoint;
+var prevSelectedTarget;
 var geojson;
 var markers;
 var arrow = null;
@@ -52,15 +53,6 @@ function mapInit() {
     }).addTo(mymap);
 
 
-    var numberIcon = L.divIcon({
-        className: 'my-custom-icon',
-        html: "5",
-        iconSize: [25, 41],
-        iconAnchor: [10, 44],
-        popupAnchor: [3, -40]
-    });
-
-
     // get centers to draw markers on all polygons
     for (var i = 0; i < statesData.features.length; i++) {
         markerStates.push(getTroopsMarker(statesData.features[i]));
@@ -95,7 +87,7 @@ function changeColor(playerColor) {
     var wraperCol = document.getElementsByClassName('wrapper');
     var turnCol = document.getElementsByClassName('turn-container');
     var personBkg = document.getElementsByClassName('turn-info');
-    //var troopcounter = document.getElementsByClassName('turn-info');
+    //var troopcounter = document.getElementsByClassName('troop-count');
     for (i = 0; i < cols.length; i++) {
         cols[i].style.backgroundColor = playerColor;
     }
@@ -103,6 +95,7 @@ function changeColor(playerColor) {
     wraperCol[0].style.borderColor = playerColor;
     turnCol[0].style.borderColor = playerColor;
     personBkg[0].style.backgroundColor = playerColor;
+    //troopcounter[0].style.backgroundColor = playerColor;
 }
 
 function changePlayersName(player) {
@@ -125,6 +118,7 @@ function whichPhaseItIs(listOfTurns) {
         
     }
     else if ($("#attk-turn-label").hasClass('active')) {
+        console.log("attack");
         if (arrow != null) {
             mymap.removeLayer(arrow);
             mymap.removeLayer(arrowHead);
@@ -138,17 +132,8 @@ function whichPhaseItIs(listOfTurns) {
         
         $("#fortify-turn-label").removeClass('active');
         $("#deploy-turn-label").addClass('active');
-        switch (actualTurn) {
-            case 0:
-                actualTurn = 1;
-                break;
-            case 1:
-                actualTurn = 2;
-                break;
-            case 2:
-                actualTurn = 0;
-                break;
-        }
+        
+        actualTurn= ((actualTurn != listOfPlayers.length - 1) ? actualTurn+1 : 0);
         changePhaseName("Deploy");
         document.getElementById("troop-count-container").style.display = "flex";
       
@@ -175,13 +160,13 @@ $(".wrapper").click(function () {
    whichPhaseItIs();
 })
 
-function getColor(d) {
-    return d > 40 ? '#0275d8' :
-           d > 30  ? '#f0ad4e' :
-           d > 20  ? '#d9534f' :
-                    '#5cb85c';
+//function getColor(d) {
+//    return d > 40 ? '#0275d8' :
+//           d > 30  ? '#f0ad4e' :
+//           d > 20  ? '#d9534f' :
+//                    '#5cb85c';
                       
-}
+//}
 
 function style(feature) {
     return {
@@ -222,8 +207,29 @@ function getMarkerId(marker_id) {
 
 function addTroopsToTerritory(marker_id) {
     //Increase troop number on marker and assign new value
-    var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1;
-    markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
+    if (marker_id != null) {
+        var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1;
+        markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
+    }
+    
+}
+
+function replaceTroops(marker_id, num) {
+    //Increase troop number on marker and assign new value
+    if (marker_id != null) {
+        var temp =  num;
+        markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
+    }
+
+}
+
+function subTroopsToTerritory2(marker_id, num) {
+    //Increase troop number on marker and assign new value
+    if (marker_id != null) {
+        var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) - num;
+        markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
+    }
+
 }
 
 function findWithAttr(array, attr, value) {
@@ -274,15 +280,19 @@ function zoomToFeature(e) {
         mymap.removeLayer(arrow);
         mymap.removeLayer(arrowHead);
         geojson.resetStyle(e.target);
-    }
+    } //console.log("color", e.target.feature.properties.color);
+    
     if ($("#attk-turn-label").hasClass('active') ) {
-        if (isStateSelected == 1 && e.target.feature.properties.color != prevSelectedPolygon.properties.color && e.target.feature.properties.player != currentPlayer.innerHTML && intersects!=null ) {
-            
-            e.target.feature.properties.color = JSON.parse(JSON.stringify(prevSelectedPolygon.properties.color));
-            e.target.feature.properties.player = JSON.parse(JSON.stringify(currentPlayer.innerHTML));
-            geojson.resetStyle(e.target);
+        if (isStateSelected == 1 && e.target.feature.properties.playerName != prevSelectedPolygon.properties.playerName && e.target.feature.properties.playerName != currentPlayer.innerHTML && intersects!=null ) {
+            console.log("1");
+           
             isStateSelected = 0;
+            
+            callAjaxfunc(e.target, parseInt(e.target.feature.id), currentPlayer);
+            
+            
             console.log("You attacked this territory", e.target.feature.id);
+            mymap.fitBounds(e.target.getBounds());
             arrow = L.polyline([prevSelectedPoint, e.latlng]).addTo(mymap);
             arrowHead = L.polylineDecorator(arrow, {
                 patterns: [
@@ -295,14 +305,24 @@ function zoomToFeature(e) {
             }).addTo(mymap);
 
         }
-        else if (e.target.feature.properties.player == currentPlayer.innerHTML) {
+        else if (e.target.feature.properties.playerName == currentPlayer.innerHTML) {
+            console.log("2");
+
             mymap.fitBounds(e.target.getBounds());
             console.log("0");
-            console.log("Place from where attack is coming",e.target);
+            console.log("Place from where attack is coming", e.target);
+            console.log("taraget", e.target);
+            prevSelectedTarget = e.target;
+           
             prevSelectedPolygon = JSON.parse(JSON.stringify(e.target.feature));
             prevSelectedPoint = JSON.parse(JSON.stringify(e.latlng));
             isStateSelected = 1;
         } else {
+            console.log("3");
+            //console.log("StateSelected", isStateSelected == 1);
+            //console.log("Diffrent playernamw1", e.target.feature.properties.playerName != prevSelectedPolygon.properties.playerName);
+            //console.log("Diffrent playernamw1", e.target.feature.properties.playerName != currentPlayer.innerHTML);
+            //console.log("intersetcs", intersects != null);
             mymap.fitBounds(e.target.getBounds());
             isStateSelected = 0
         }
@@ -315,25 +335,16 @@ function zoomToFeature(e) {
         mymap.fitBounds(e.target.getBounds())
     }
     else {
-        let marker_id = parseInt(e.target.feature.id);
-        switch (actualTurn) {
-            case 0:
-                if (marker_id > 20 && marker_id <= 30)
-                    addTroopsToTerritory(marker_id);
-                break;
-            case 1:
-                if (marker_id > 30 && marker_id <= 40)
-                    addTroopsToTerritory(marker_id);
-                break;
-            case 2:
-                if (marker_id <= 20)
-                    addTroopsToTerritory(marker_id);
-                break;
-        }
+        var marker_id = parseInt(e.target.feature.id);
+        let player_id = parseInt(e.target.feature.properties.playerId);
+        marker_id = (player_id-1 == actualTurn ? marker_id : null);
+        console.log(marker_id);
+        addTroopsToTerritory(marker_id);
+       
     }
     for (var i = 0; i < statesData.features.length; i++) {
 
-        if (statesData.features[i].properties.player == e.target.feature.properties.player) {
+        if (statesData.features[i].properties.playerName == e.target.feature.properties.playerName) {
             count++;
         }
     }
@@ -388,7 +399,7 @@ function getMatrixofNgb() {
         
         
     }
-    console.log(returnMatrix);
+   
 }
 function onEachFeature(feature, layer) {
     layer.on({
@@ -408,7 +419,6 @@ function getTroopsMarker(d) {
             geojsonFeatureMarker = {
             "type": "Feature",
             "properties": {
-                
                 "number": d.properties.troops
             },
             "geometry": {
@@ -435,8 +445,7 @@ function getTroopsMarker(d) {
         
             geojsonFeatureMarker = {
             "type": "Feature",
-            "properties": {
-               
+            "properties": { 
                 "number": d.properties.troops
             },
             "geometry": {
@@ -447,56 +456,55 @@ function getTroopsMarker(d) {
     }
     return geojsonFeatureMarker;            
 }
-function getNewColor(tmp) {
-    listOfPlayers[tmpId - 1].Name;
-    return tmp=='Player2' ? '#f0ad4e' :
-        tmp=='Player1' ? '#d9534f' :
-            '#5cb85c';
-
-}
-function tmpAssign(tmpId) {
-    for (var i = 1; i <= listOfPlayers.length; i++) {
-        console.log(listOfPlayers[tmpId-1].Name);
-        //if (tmpId == (listOfPlayers[i].Id)){
-        //    return i.Name;
-        //}
-    }
-    //return tmpID > 40 ? 'nobody' :
-    //    tmpID > 30 ? 'Player2' :
-    //        tmpID > 20 ? 'Player1' :
-    //            'Buffer';
-}
-
 for (var i = 0; i < statesData.features.length; i++)
 {
-    
-    
     var tmpId = statesData.features[i].properties.playerId;
     statesData.features[i].properties.playerName = listOfPlayers[tmpId - 1].Name;
-   
-   
 }
-//for (var i = 0; i < initialTerritories; i++) {
-//    switch (i) {
-//        case i < 13:
-//            statesData.features[initialTerritories[i]].player = 'Player1';
-//            statesData.features[initialTerritories[i]].properties.color = getNewColor('Player1');
-//            break;
-//        case i < 26:
-//            statesData.features[initialTerritories[i]].player = 'Player2';
-//            statesData.features[initialTerritories[i]].properties.color = getNewColor('Player2');
-//            break;
-//        default:
-//            statesData.features[initialTerritories[i]].player = 'Buffer';
-//            statesData.features[initialTerritories[i]].properties.color = getNewColor('Buffor');
-
-//    }
-//    statesData.features[i].properties.numnum = initialTroopsNum[i.toString];
-    
-    
-
-//}
-console.log(statesData.features[0]);
-// set view 
 
 
+
+
+var golbal1;
+function assinger(id,callback) {
+  
+}
+function callAjaxfunc(target,id,currentPlayer) {
+    $.ajax({
+    method: "GET",
+    url: "Dice/GetWinner2",
+    contentType: "application/json",
+        data: { attackers: parseInt(prevSelectedPolygon.properties.troops)-1 ,defencors: parseInt(target.feature.properties.troops)},
+    dataType: "json",
+        success: function (response) {
+            console.log(response);
+            if (response[0] != 0) {
+
+                target.feature.properties.playerName = JSON.parse(JSON.stringify(currentPlayer.innerHTML));
+                target.feature.properties.playerId = JSON.parse(JSON.stringify(prevSelectedPolygon.properties.playerId));
+                target.feature.properties.troops = response[0].length;
+              
+                var marker_id1 = parseInt(target.feature.id);
+                var marker_id2 = parseInt(prevSelectedPolygon.id);
+                replaceTroops(marker_id1, response[0].length);
+                replaceTroops(marker_id2, 1);
+                prevSelectedPolygon.properties.troops = 1;
+                geojson.resetStyle(target);
+                geojson.resetStyle(prevSelectedTarget);
+                console.log(target);
+                console.log("moj",prevSelectedTarget);
+
+                //markers._layers[getMarkerId(parseInt(id))]._icon.innerHTML = response[0].length;
+            }
+            else {
+
+            }
+           // markers._layers[getMarkerId(parseInt(id))]._icon.innerHTML = response
+            
+    },
+    error: function (response) {
+        console.warn('Send - error', response);
+    }
+});
+      
+}
