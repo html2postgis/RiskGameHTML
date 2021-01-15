@@ -11,12 +11,12 @@ var markerStates = [];
 const FIRST_LAYER = 109; // created to search through markers in geojson
 var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
 var TurnColors = ["red", "orange", "green"];
-
+var mymap;
 
 var listOfPlayers = [
-    { Name: 'Player1', Troops: 30, Id: 1, Color: "red"  },
-    { Name: 'Player2', Troops: 30, Id: 2, Color:"orange"},
-    { Name: 'Buffor', Troops: 30, Id: 3, Color: "green" }
+    { Name: 'Player1', Troops: 27, Id: 1, Color: "red", TerritoryColor: '#d9534f'},
+    { Name: 'Player2', Troops: 27, Id: 2, Color: "orange", TerritoryColor: '#f0ad4e'},
+    { Name: 'Buffor', Troops: 27, Id: 3, Color: "green", TerritoryColor: '#5cb85c' }
 ];
 
 var actualTurn = 0;
@@ -31,7 +31,7 @@ $("#new-game-button").click(function () {
 
 // This function instantiates the map after the New Game button is pressed. IMPORTANT - without it there are bugs in deploy phase.
 function mapInit() {
-    var mymap = L.map('mapid')
+    mymap = L.map('mapid')
         .setView([37.8, -96], 3.5);
     // setting bounds(disallowing moving outside of the US)
     mymap.setMaxBounds(mymap.getBounds());
@@ -184,9 +184,8 @@ function getColor(d) {
 }
 
 function style(feature) {
-    console.log("fea", feature.properties.color);
     return {
-        fillColor: feature.properties.color,
+        fillColor: listOfPlayers[feature.properties.playerId-1].TerritoryColor,
         weight: 2,
         opacity: 1,
         color: 'white',
@@ -245,7 +244,11 @@ function zoomToFeature(e) {
     //let obj = listOfPlayers.find(o => o.Name === currentPlayer.innerHTML);
     //let tmpgearCol = document.getElementsByClassName('gear');
     //let index = findWithAttr(listOfPlayers, "Name", currentPlayer.innerHTML);
+    console.log("attack",$('#attk-turn-label').hasClass('active'));
+    console.log("fortify",$("#fortify-turn-label").hasClass('active'));
+    console.log("deploy", $("#deploy-turn-label").hasClass('active'));
     
+
     var intersects = null;
     var mytime2;
     if (prevSelectedPolygon != undefined) {
@@ -405,7 +408,7 @@ function getTroopsMarker(d) {
             geojsonFeatureMarker = {
             "type": "Feature",
             "properties": {
-                "color": getColor(d.id),
+                
                 "number": d.properties.troops
             },
             "geometry": {
@@ -433,7 +436,7 @@ function getTroopsMarker(d) {
             geojsonFeatureMarker = {
             "type": "Feature",
             "properties": {
-                "color": getColor(d.id),
+               
                 "number": d.properties.troops
             },
             "geometry": {
@@ -445,27 +448,34 @@ function getTroopsMarker(d) {
     return geojsonFeatureMarker;            
 }
 function getNewColor(tmp) {
+    listOfPlayers[tmpId - 1].Name;
     return tmp=='Player2' ? '#f0ad4e' :
         tmp=='Player1' ? '#d9534f' :
             '#5cb85c';
 
 }
-function tmpAssign(tmpID) {
-    return tmpID > 40 ? 'nobody' :
-        tmpID > 30 ? 'Player2' :
-            tmpID > 20 ? 'Player1' :
-                'Buffer';
+function tmpAssign(tmpId) {
+    for (var i = 1; i <= listOfPlayers.length; i++) {
+        console.log(listOfPlayers[tmpId-1].Name);
+        //if (tmpId == (listOfPlayers[i].Id)){
+        //    return i.Name;
+        //}
+    }
+    //return tmpID > 40 ? 'nobody' :
+    //    tmpID > 30 ? 'Player2' :
+    //        tmpID > 20 ? 'Player1' :
+    //            'Buffer';
 }
 
 for (var i = 0; i < statesData.features.length; i++)
 {
     
-    statesData.features[i].properties.color = getColor(statesData.features[i].id);
-    var tmpID = statesData.features[i].id;
-    statesData.features[i].properties.player = tmpAssign(tmpID);
+    
+    var tmpId = statesData.features[i].properties.playerId;
+    statesData.features[i].properties.playerName = listOfPlayers[tmpId - 1].Name;
+   
    
 }
-
 //for (var i = 0; i < initialTerritories; i++) {
 //    switch (i) {
 //        case i < 13:
