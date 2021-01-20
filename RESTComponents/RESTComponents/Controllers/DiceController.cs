@@ -21,32 +21,6 @@ namespace RESTComponents.Controllers
         {
             _territoryList = territoryList;
         }
-        //[HttpPost("{action}")]
-        //public IActionResult AddInitialTerritory([FromBody] Territory territory)
-        //{
-            
-        //    _territoryList.AddTerritory(territory);
-        //    var ordered = _territoryList.GetTerritories().OrderBy(o => o.Id).ToList();
-        //    var newList = new TerritoryList();
-        //    foreach(var item in ordered)
-        //    {
-        //        newList.AddTerritory(item);
-        //    }
-        //    _territoryList = newList;
-        //    Console.WriteLine("Action1");
-        //    return Created("", territory);
-        //}
-        //[HttpPost("{action}")]
-        //public IActionResult AddInitialList([FromBody] List<Territory> territories)
-        //{
-        //    foreach (var item in territories)
-        //    {
-        //        _territoryList.AddTerritory(item);
-        //    }
-            
-        //    Console.WriteLine("Action1");
-        //    return Created("", territories);
-        //}
         [HttpGet("{action}")]
         public List<Territory> GetAllTerritories()
         {
@@ -131,30 +105,7 @@ namespace RESTComponents.Controllers
             return meh2;
             //return meh.Keys.OrderBy(k => Int32.Parse(k)).ToDictionary(k => k, k => meh[k]);
         }
-        //    // GET api/<DiceController>/5
-        //    [HttpGet("{id}")]
-        //    public string Get(int id)
-        //    {
-        //        return "value";
-        //    }
-
-        //// POST api/<DiceController>
-        //[HttpPost]
-        //    public void Post([FromBody] string value)
-        //    {
-        //    }
-
-        //    // PUT api/<DiceController>/5
-        //    [HttpPut("{id}")]
-        //    public void Put(int id, [FromBody] string value)
-        //    {
-        //    }
-
-        //    // DELETE api/<DiceController>/5
-        //    [HttpDelete("{id}")]
-        //    public void Delete(int id)
-        //    {
-        //    }
+       
     }
 }
 

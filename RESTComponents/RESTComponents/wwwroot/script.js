@@ -55,13 +55,7 @@ function mapInit() {
     }).addTo(mymap);
 
 
-    var numberIcon = L.divIcon({
-        className: 'my-custom-icon',
-        html: "5",
-        iconSize: [25, 41],
-        iconAnchor: [10, 44],
-        popupAnchor: [3, -40]
-    });
+   
 
 
     // get centers to draw markers on all polygons
@@ -294,15 +288,9 @@ $(".wrapper").click(function () {
    whichPhaseItIs();
 })
 
-//function getColor(d) {
-//    return d > 40 ? '#0275d8' :
-//           d > 30  ? '#f0ad4e' :
-//           d > 20  ? '#d9534f' :
-//                    '#5cb85c';             
-//}
+
 
 function style(feature) {
-    //console.log("fea", feature.properties.color);
     return {
         fillColor: listOfPlayers[feature.properties.playerId - 1].TerritoryColor,
         weight: 2,
@@ -315,22 +303,33 @@ function style(feature) {
 
 function highlightFeature(e) {
     var layer = e.target;
-
-    layer.setStyle({
-        weight: 5,
-        color: '#666',
-        dashArray: '',
-        fillOpacity: 0.7
-    });
-
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        layer.bringToFront();
+    
+    if (parseInt(layer.feature.properties.playerId)-1 == actualTurn) {
+        layer.setStyle({
+            weight: 5,
+            color: '#666',
+            dashArray: '',
+            fillOpacity: 0.7
+        });
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+            layer.bringToFront();
+        }
     }
+    
+
+   
 }
 
 function resetHighlight(e) {
-    
-    geojson.resetStyle(e.target);
+
+    if ($("#attk-turn-label").hasClass('active') && (prevSelectedPolygon != undefined || prevSelectedPolygon !=null)&&e.target.feature.id == prevSelectedPolygon.id ) {
+        console.log("here");
+    }
+    else
+    {
+        geojson.resetStyle(e.target);
+    }
+   
     
 }
 
@@ -379,9 +378,6 @@ function findWithAttr(array, attr, value) {
 
 function zoomToFeature(e) {
     var currentPlayer = document.getElementById("turn-info-person");
-    //let obj = listOfPlayers.find(o => o.Name === currentPlayer.innerHTML);
-    //let tmpgearCol = document.getElementsByClassName('gear');
-    //let index = findWithAttr(listOfPlayers, "Name", currentPlayer.innerHTML);
     var intersects = null;
     var mytime2;
     if (prevSelectedPolygon != undefined) {
@@ -410,7 +406,13 @@ function zoomToFeature(e) {
     if ($("#attk-turn-label").hasClass('active')) {
         if (isStateSelected == 1 && e.target.feature.properties.playerName != prevSelectedPolygon.properties.playerName && e.target.feature.properties.playerName != currentPlayer.innerHTML && intersects != null) {
 
-
+            e.target.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+          
             isStateSelected = 0;
 
             callAjaxfunc(e.target, parseInt(e.target.feature.id), currentPlayer);
@@ -427,39 +429,46 @@ function zoomToFeature(e) {
 
                     }]
             }).addTo(mymap);
+            prevSelectedTarget = null;
+            prevSelectedPolygon = null;
+            prevSelectedPoint = null;
 
         }
         else if (e.target.feature.properties.playerName == currentPlayer.innerHTML) {
-
+            if (prevSelectedTarget != undefined || prevSelectedTarget != null) {
+                geojson.resetStyle(prevSelectedTarget);
+            }
+           
             mymap.fitBounds(e.target.getBounds());
             prevSelectedTarget = e.target;
-
             prevSelectedPolygon = JSON.parse(JSON.stringify(e.target.feature));
             prevSelectedPoint = JSON.parse(JSON.stringify(e.latlng));
             isStateSelected = 1;
-        } else {
-            console.log("3");
-            //console.log("StateSelected", isStateSelected == 1);
-            //console.log("Diffrent playernamw1", e.target.feature.properties.playerName != prevSelectedPolygon.properties.playerName);
-            //console.log("Diffrent playernamw1", e.target.feature.properties.playerName != currentPlayer.innerHTML);
-            //console.log("intersetcs", intersects != null);
+        }
+        else {
+            prevSelectedTarget = null;
+            prevSelectedPolygon = null;
+            prevSelectedPoint = null;
             mymap.fitBounds(e.target.getBounds());
             isStateSelected = 0
         }
-        var count = 0;
+       
 
 
     }
     else if ($("#fortify-turn-label").hasClass('active')){
         playerPossessPolygon(parseInt(e.target.feature.id));
+        isStateSelected = 0;
     }
     else {
+        isStateSelected = 0;
         let marker_id = parseInt(e.target.feature.id);
         if (parseInt(document.getElementById("troop-count").innerHTML) <= 0) return;
         assignTroopToMarker(marker_id,e);
         
         
     }
+    var count = 0;
     for (var i = 0; i < statesData.features.length; i++) {
 
         if (statesData.features[i].properties.playerName == e.target.feature.properties.playerName) {

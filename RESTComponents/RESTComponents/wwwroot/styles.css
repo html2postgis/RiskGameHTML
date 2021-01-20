@@ -1,7 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
 
 * {
-    font-family: 'Ubuntu', sans-serif; /*Karol's favourite font XD*/
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -321,8 +320,8 @@ img {
         width: 70px;
         height: auto;
         fill: rgb(181, 240, 255);
-        opacity: 100%;
-        display: absolute;
+        opacity: 100;
+        position: absolute;
         margin-top: 10px;
         margin-left: 20px;
         cursor: pointer;
