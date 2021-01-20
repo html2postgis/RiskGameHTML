@@ -15,6 +15,7 @@ var markerStates = [];
 const FIRST_LAYER = 109; // created to search through markers in geojson
 var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
 var TurnColors = ["red", "orange", "green"];
+var statesData;
 
 var listOfPlayers = [
     { Name: 'Player1', Troops: 27, Id: 1, Color: "red", TerritoryColor: '#d9534f' },
@@ -22,6 +23,43 @@ var listOfPlayers = [
     { Name: 'Buffor', Troops: 27, Id: 3, Color: "green", TerritoryColor: '#5cb85c' }
 ];
 var actualTurn = 0;
+function waitForElement(response) {
+    statesData = response;
+    if (typeof statesData !== "undefined") {
+        //variable exists, do what you want
+        $("#new-game-button").attr("disabled", false);
+        for (var i = 0; i < statesData.features.length; i++) {
+            //console.log(statesData.features[i]);
+
+            var tmpId = statesData.features[i].properties.playerId;
+
+            statesData.features[i].properties.playerName = listOfPlayers[tmpId - 1].Name;
+        }
+    }
+    else {
+        setTimeout(statesData, 250);
+    }
+   
+}
+function getStates() {
+
+    $.ajax({
+        url: "Player/GetMy",
+        type: "GET",
+        contentType: "application/json",
+
+
+    }).done(function (response) {
+        waitForElement(response);
+    });
+    
+}
+getStates();
+
+function completeStates(callback) {
+    callback();
+   
+}
 
 //New game button event handler - transition between game menu and game map
 $("#new-game-button").click(function () {
@@ -337,9 +375,6 @@ function resetHighlight(e) {
 function getMarkerId(marker_id) {
     return FIRST_LAYER + (marker_id == 1 ? 0 : marker_id);
 }
-
-
-
 function replaceTroops(marker_id, num) {
     //Increase troop number on marker and assign new value
     if (marker_id != null) {
@@ -349,7 +384,6 @@ function replaceTroops(marker_id, num) {
     }
 
 }
-
 function subTroopsToTerritory2(marker_id, num) {
     //Increase troop number on marker and assign new value
     if (marker_id != null) {
@@ -359,22 +393,6 @@ function subTroopsToTerritory2(marker_id, num) {
     }
 
 }
-
-
-
-
-function findWithAttr(array, attr, value) {
-    for (var i = 0; i < array.length; i += 1) {
-        if (array[i][attr] === value) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-
-
-
 
 function zoomToFeature(e) {
     var currentPlayer = document.getElementById("turn-info-person");
@@ -429,9 +447,7 @@ function zoomToFeature(e) {
 
                     }]
             }).addTo(mymap);
-            prevSelectedTarget = null;
-            prevSelectedPolygon = null;
-            prevSelectedPoint = null;
+            
 
         }
         else if (e.target.feature.properties.playerName == currentPlayer.innerHTML) {
@@ -446,9 +462,7 @@ function zoomToFeature(e) {
             isStateSelected = 1;
         }
         else {
-            prevSelectedTarget = null;
-            prevSelectedPolygon = null;
-            prevSelectedPoint = null;
+           
             mymap.fitBounds(e.target.getBounds());
             isStateSelected = 0
         }
@@ -469,6 +483,7 @@ function zoomToFeature(e) {
         
     }
     var count = 0;
+    
     for (var i = 0; i < statesData.features.length; i++) {
 
         if (statesData.features[i].properties.playerName == e.target.feature.properties.playerName) {
@@ -476,7 +491,7 @@ function zoomToFeature(e) {
         }
     }
     if (count == 40) {
-        alert("GAME OVER.\n" + e.target.feature.properties.playerName + " won the war!!!");
+        alert("GAME OVER.\n" + e.target.features.properties.playerName + " won the war!!!");
         location.reload(true);
     }
     
@@ -647,11 +662,5 @@ function callAjaxfunc(target, id, currentPlayer) {
     //updateTerr(target.feature.id, target.feature.properties.playerId);
 
 }
-for (var i = 0; i < statesData.features.length; i++) {
-    //console.log(statesData.features[i]);
 
-    var tmpId = statesData.features[i].properties.playerId;
-
-    statesData.features[i].properties.playerName = listOfPlayers[tmpId - 1].Name;
-}
 

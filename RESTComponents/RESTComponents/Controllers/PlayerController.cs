@@ -15,6 +15,7 @@ namespace RESTComponents.Controllers
     public class PlayerController : ControllerBase
     {
         public IPlayerList _playerList;
+        public Root myRoot;
 
         public PlayerController(IPlayerList playerList)
         {
@@ -27,7 +28,12 @@ namespace RESTComponents.Controllers
         {
             return _playerList.GetPlayers();
         }
-
+        // GET: api/<PlayerController>
+        [HttpGet("{action}")]
+        public Root GetRoot()
+        {
+            return myRoot;
+        }
         // GET api/<PlayerController>/5
         [HttpGet("GetPlayerTerList/{id}")]
         public List<Territory> GetPlayerTerList(int id)
@@ -35,19 +41,26 @@ namespace RESTComponents.Controllers
             //_playerList.GetPlayers()[id].territories.Sort();
             return _playerList.GetPlayers()[id].territories;
         }
+        [HttpGet("GetMy")]
+        public Root GetMy()
+        {
+            //_playerList.GetPlayers()[id].territories.Sort();
+
+            return new Filer().LoadFiler();
+        }
         [HttpGet("GetPlayerTroopLimit/{id}")]
         public int GetPlayerTroopLimit(int id)
         {
             return _playerList.GetPlayers()[id].territories.Count/3;
         }
-     
-       
+
+
         [HttpPost("{action}")]
-        public IActionResult AddPlayerTerr([FromBody]helper help)
+        public IActionResult AddPlayerTerr([FromBody] helper help)
         {
             Territory ter = new Territory();
             ter.Id = help.territoryid;
-            _playerList.GetPlayers()[help.attackerid-1].territories.Add(ter);
+            _playerList.GetPlayers()[help.attackerid - 1].territories.Add(ter);
 
 
             //subtract
@@ -55,7 +68,7 @@ namespace RESTComponents.Controllers
             {
                 if (temp.Id == help.territoryid)
                 {
-                    _playerList.GetPlayers()[help.defenderid-1].territories.Remove(temp);
+                    _playerList.GetPlayers()[help.defenderid - 1].territories.Remove(temp);
                     break;
                 }
             }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using RESTComponents.Models;
 
 namespace RESTComponents.Helpers
 {
@@ -177,5 +178,12 @@ namespace RESTComponents.Helpers
 			return dic.Values.ToList();
 
 		}
+		public int countTerritories(Root root, int playerID)
+        {
+			
+			var counts = root.features.FindAll(x => x.properties.playerId==playerID);
+			return counts.Count;
+		}
 	}
+
 }

@@ -25,5 +25,33 @@ namespace RESTComponents.Models
         public int defenderid { get; set; }
         public int territoryid { get; set; }
     }
+    // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse); 
+    public class Properties
+    {
+        public string name { get; set; }
+        public int troops { get; set; }
+        public int playerId { get; set; }
+    }
+
+    public class Geometry
+    {
+        public string type { get; set; }
+        public List<List<List<object>>> coordinates { get; set; }
+    }
+
+    public class Feature
+    {
+        public string type { get; set; }
+        public string id { get; set; }
+        public Properties properties { get; set; }
+        public Geometry geometry { get; set; }
+    }
+
+    public class Root
+    {
+        public string type { get; set; }
+        public List<Feature> features { get; set; }
+    }
+
 
 }

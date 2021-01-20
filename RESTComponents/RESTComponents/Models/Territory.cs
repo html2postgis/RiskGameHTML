@@ -10,6 +10,7 @@ namespace RESTComponents.Helpers
         public int Id { get; set; }
         public string StateName { get; set; }
         public string PlayerName { get; set; }
+       
         public int Troops { get; set; }
     }
     public interface ITerritoryList
