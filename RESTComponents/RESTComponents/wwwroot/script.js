@@ -11,6 +11,8 @@ var mymap;
 var arrowHead = null;
 var selectedMarkerId = -1; // int value -- used in fortify phase 
 var prevSelectedMarkerId = -1; // --------||-----------
+var fortifySelectedPoly;
+var fortifyPrevSelectedPoly;
 var markerStates = [];
 const FIRST_LAYER = 109; // created to search through markers in geojson
 var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
@@ -67,26 +69,49 @@ function getStates() {
 // ------------------------ MAP INTIALIZATION ------------------------
 
 function style(feature) {
-    return {
-        fillColor: listOfPlayers[feature.properties.playerId - 1].TerritoryColor,
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.7
-    };
+    if (feature.id == selectedMarkerId || feature.id == prevSelectedMarkerId) {
+        return {
+            fillColor: listOfPlayers[feature.properties.playerId - 1].TerritoryColor,
+            weight: 6,
+            opacity: 1,
+            color: '#08F4FF',
+            fillOpacity: 0.7
+        };
+    }
+    else {
+        return {
+            fillColor: listOfPlayers[feature.properties.playerId - 1].TerritoryColor,
+            weight: 2,
+            opacity: 1,
+            color: 'white',
+            dashArray: '3',
+            fillOpacity: 0.7
+        };
+    }
 }
 
 function highlightFeature(e) {
     var layer = e.target;
 
     if (parseInt(layer.feature.properties.playerId) - 1 == actualTurn) {
-        layer.setStyle({
-            weight: 5,
-            color: '#666',
-            dashArray: '',
-            fillOpacity: 0.7
-        });
+
+        if (prevSelectedMarkerId == layer.feature.id || selectedMarkerId == layer.feature.id) {
+            layer.setStyle({
+                weight: 5,
+                color: '#FF5733',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+        }
+        else {
+            layer.setStyle({
+                weight: 5,
+                color: '#666',
+                dashArray: '',
+                fillOpacity: 0.7
+            });
+        }
+        
         if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
             layer.bringToFront();
         }
@@ -269,6 +294,8 @@ $("#forward-button").click(function () {
     prevSelectedMarkerId = -1;
     document.getElementById("slider_value").value = 0;
     mymap.dragging.enable();
+    geojson.resetStyle(fortifyPrevSelectedPoly);
+    geojson.resetStyle(fortifySelectedPoly);
 
 })
 
@@ -278,6 +305,8 @@ $("#cross-button").click(function () {
     prevSelectedMarkerId = -1;
     document.getElementById("fortify-slider-container").style.display = "none";
     document.getElementById("slider_value").value = 0;
+    geojson.resetStyle(fortifyPrevSelectedPoly);
+    geojson.resetStyle(fortifySelectedPoly);
     mymap.dragging.enable();
 })
 
@@ -332,7 +361,8 @@ function changeColor(playerColor) {
     var wraperCol = document.getElementsByClassName('wrapper');
     var turnCol = document.getElementsByClassName('turn-container');
     var personBkg = document.getElementsByClassName('turn-info');
-    
+    var trpcounter = document.getElementsByClassName('troop-counter');
+
     for (i = 0; i < cols.length; i++) {
         cols[i].style.backgroundColor = playerColor;
     }
@@ -340,6 +370,7 @@ function changeColor(playerColor) {
     wraperCol[0].style.borderColor = playerColor;
     turnCol[0].style.borderColor = playerColor;
     personBkg[0].style.backgroundColor = playerColor;
+    trpcounter[0].style.borderColor = playerColor;
 }
 
 function changePlayersName(player) {
@@ -438,7 +469,7 @@ function addTroopsToTerritory(marker_id, e) {
 
 // Used in FORTIFY phase : an utility for checking if user clicked the right polygon
 // and displaying the slider
-function playerPossessPolygon(marker_id) {
+function playerPossessPolygon(marker_id,e) {
     var result = false;
     $.ajax({
         url: "Feature/GetIfValidTerritory/" + actualTurn,
@@ -458,7 +489,9 @@ function playerPossessPolygon(marker_id) {
             
             else {
                 if (prevSelectedMarkerId == -1) {
-                    prevSelectedMarkerId = marker_id
+                    prevSelectedMarkerId = marker_id;
+                    fortifyPrevSelectedPoly = e.target;
+
                 }
                 
                 else if (selectedMarkerId == -1 && marker_id != prevSelectedMarkerId) {
@@ -469,7 +502,7 @@ function playerPossessPolygon(marker_id) {
                     document.getElementById("slider_max").value = document.getElementById("fortify-slider").max;
                     document.getElementById("fortify-slider-container").style.display = "flex";
                     $("#fortify-slider-container").mousedown(function () { mymap.dragging.disable(); });
-
+                    fortifySelectedPoly = e.target;
                 }
             }
         },
@@ -601,7 +634,7 @@ function zoomToFeature(e) {
         }
     }
     else if ($("#fortify-turn-label").hasClass('active')){
-        playerPossessPolygon(parseInt(e.target.feature.id));
+        playerPossessPolygon(parseInt(e.target.feature.id),e);
         isStateSelected = 0;
        
        
