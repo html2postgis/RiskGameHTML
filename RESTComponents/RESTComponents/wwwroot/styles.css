@@ -12,6 +12,34 @@ body {
     height: 100%;
 }
 
+#tutorial-container{
+    
+    display:none;
+    flex-direction:row;
+    justify-content:center;
+    align-items:flex-start
+        
+}
+
+.back-button-container {
+    margin-right: 5px;
+    display: flex;
+    flex-direction: row;
+
+}
+
+#previous-button {
+    padding: 7px 16px;
+    font-size:30px;
+    background-color: #f1f1f1;
+    color:black;
+    border:none;
+}
+    #previous-button:hover {
+        background-color: #ddd;
+
+    }
+
 /*GAME MENU STYLE*/
 #game-menu {
     display: flex;
@@ -34,6 +62,10 @@ img {
     text-align: center;
     margin: auto;
 }
+#resume-button{
+    display:none;
+}
+
 
 .btn-group {
     display: flex;

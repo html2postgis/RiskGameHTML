@@ -244,16 +244,42 @@ function mapInit() {
 
 // New game button event handler - transition between game menu and game map
 $("#new-game-button").click(function () {
+    if (mymap != undefined) {
+        location.reload();
+    }
     document.getElementById("game-menu").style.display = "none";
     document.getElementById("map-container").style.display = "inline";
     mapInit();
+    
 })
+
+$("#resume-button").click(function () {
+    document.getElementById("map-container").style.display = "inline";
+    document.getElementById("game-menu").style.display = "none";
+})
+
 
 // spinning of the options button
 $(".gear").hover(function () {
     $("#gear-icon").addClass("fa-spin");
     $("#gear-icon").css("color", "#39ffff");
+})
 
+$(".gear").click(function () {
+    document.getElementById("game-menu").style.display = "flex";
+    document.getElementById("map-container").style.display = "none";
+    document.getElementById("resume-button").style.display = "inline";
+})
+
+
+$("#tutorial-button").click(function () {
+    document.getElementById("game-menu").style.display = "none";
+    document.getElementById("tutorial-container").style.display = "flex";
+})
+
+$("#previous-button").click(function () {
+    document.getElementById("game-menu").style.display = "flex";
+    document.getElementById("tutorial-container").style.display = "none";
 })
 
 // spinning of the options button
@@ -498,7 +524,10 @@ function playerPossessPolygon(marker_id,e) {
                     fortifyPrevSelectedPoly = e.target;
 
                 }
-                
+                if (marker_id == 1) {
+                    alert("You can move troops only when there are at least 2 armies in origin territory.");
+                    return;
+                }
                 else if (selectedMarkerId == -1 && marker_id != prevSelectedMarkerId) {
                     selectedMarkerId = marker_id;
                     
