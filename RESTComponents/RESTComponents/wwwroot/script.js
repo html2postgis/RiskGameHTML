@@ -264,6 +264,10 @@ $(".gear").mouseleave(function () {
 
 // change turn button click event handler
 $(".wrapper").click(function () {
+    selectedMarkerId = -1;
+    prevSelectedMarkerId = -1;
+    geojson.resetStyle(fortifySelectedPoly);
+    geojson.resetStyle(fortifyPrevSelectedPoly);
     whichPhaseItIs();
 })
 
@@ -315,6 +319,7 @@ $("#cross-button").click(function () {
 
 //Updates UI - changes colors of bars, changes phase label and modifies turn variables
 function whichPhaseItIs(listOfTurns) {
+    
     changeColor("gray");
     if ($("#deploy-turn-label").hasClass('active')) {
         if (isDeployFinished() == 1) {
