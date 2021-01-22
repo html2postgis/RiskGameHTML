@@ -13,7 +13,7 @@ namespace RESTComponents.Helpers
 			var rnd = new Random();
 			var attackers = new List<int>();
 			var defencors = new List<int>();
-			
+			Console.WriteLine($"att {attack} + def {defence}");
 			for (int i = 0; i < attack; i++)
 			{
 				attackers.Add(-1);
@@ -110,74 +110,9 @@ namespace RESTComponents.Helpers
 			resultList.Add(defencors);
 			return resultList;
 		}
-		public int[] generatePlayersTerritory ()
-        {
-			int[] arrA = new int[40];
-			Random random = new Random();
-
-			for (int i = 0; i <= arrA.Length - 1; i++)
-			{
-				var number = random.Next(1, 41);
-				while (arrA.Any(n => n == number))
-				{
-					number = random.Next(1, 41);
-				}
-
-				arrA[i] = number;
-				
-			}
-			return arrA;
-		}
-		public Dictionary<string,int> initialTroopsDeploy(int[] number_of_territories, int numOfTroops)
-		{
 		
-			Random rnd = new Random();
-			List<int> res = new List<int>();
-			for (int i = 0; i < number_of_territories.Length; i++)
-			{
-				res.Add(number_of_territories[i]);
-				Console.WriteLine(number_of_territories[i]);
-			}
-			for (int i = 0; i < numOfTroops; i++)
-            {
-				res.Add(number_of_territories[rnd.Next(1, number_of_territories.Length)]);
-            }
-
-			var g = res.GroupBy(i => i);
-			var dic = new Dictionary<string, int>();
-			foreach(var grp in g)
-			{
-				dic.Add(grp.Key.ToString(), grp.Count());
-				 
-			}
-			return dic;
-
-		}
-		public List<int> initialTroopsDeploy2(int[] number_of_territories, int numOfTroops)
-		{
-
-			Random rnd = new Random();
-			List<int> res = new List<int>();
-			for (int i = 0; i < number_of_territories.Length; i++)
-			{
-				res.Add(number_of_territories[i]);
-				
-			}
-			for (int i = 0; i < numOfTroops; i++)
-			{
-				res.Add(number_of_territories[rnd.Next(1, number_of_territories.Length)]);
-			}
-
-			var g = res.GroupBy(i => i);
-			var dic = new Dictionary<string, int>();
-			foreach (var grp in g)
-			{
-				dic.Add(grp.Key.ToString(), grp.Count());
-
-			}
-			return dic.Values.ToList();
-
-		}
+		
+		
 		public int countTerritories(Root root, int playerId)
         {
 			

@@ -24,6 +24,11 @@ var listOfPlayers = [
     { Name: 'Buffor', Troops: 27, Id: 3, Color: "green", TerritoryColor: '#5cb85c' }
 ];
 
+// ------------------------ PREINTIALIZATION ------------------------
+
+getStates();
+
+// waiting for intial data from the server
 function waitForElement(response) {
     statesData = response;
     if (typeof statesData !== "undefined") {
@@ -42,6 +47,8 @@ function waitForElement(response) {
     }
    
 }
+
+// function that gets all initial states with playerId, troops and other properties 
 function getStates() {
 
     $.ajax({
@@ -55,20 +62,107 @@ function getStates() {
     });
     
 }
-getStates();
 
-function completeStates(callback) {
-    callback();
-   
+
+// ------------------------ MAP INTIALIZATION ------------------------
+
+function style(feature) {
+    return {
+        fillColor: listOfPlayers[feature.properties.playerId - 1].TerritoryColor,
+        weight: 2,
+        opacity: 1,
+        color: 'white',
+        dashArray: '3',
+        fillOpacity: 0.7
+    };
 }
 
-//New game button event handler - transition between game menu and game map
-$("#new-game-button").click(function () {
-    document.getElementById("game-menu").style.display = "none";
-    document.getElementById("map-container").style.display = "inline";
-    mapInit();
-})
+function highlightFeature(e) {
+    var layer = e.target;
 
+    if (parseInt(layer.feature.properties.playerId) - 1 == actualTurn) {
+        layer.setStyle({
+            weight: 5,
+            color: '#666',
+            dashArray: '',
+            fillOpacity: 0.7
+        });
+        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+            layer.bringToFront();
+        }
+    }
+
+
+
+}
+
+function resetHighlight(e) {
+
+    if ($("#attk-turn-label").hasClass('active') && (prevSelectedPolygon != undefined || prevSelectedPolygon != null) && e.target.feature.id == prevSelectedPolygon.id) {
+        console.log("here");
+    }
+    else {
+        geojson.resetStyle(e.target);
+    }
+
+
+}
+
+// Function used in map initialization. 
+// It gets the center of the polygon and create a point for troops' number
+function getTroopsMarker(d) {
+    var geojsonFeatureMarker;
+    if (d.geometry.type == "Polygon") {
+        var polygon = turf.polygon(d.geometry.coordinates);
+        var centroid = turf.centerOfMass(polygon);
+        geojsonFeatureMarker = {
+            "type": "Feature",
+            "properties": {
+                "number": d.properties.troops
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": centroid.geometry.coordinates
+            }
+        };
+
+    }
+    if (d.geometry.type == "MultiPolygon") {
+        // find biggest polygon
+        let max = -Infinity;
+        let index = -1;
+        d.geometry.coordinates.forEach(function (a, k) {
+            if (a.length > max) {
+                max = a.length;
+                index = k;
+            }
+        });
+        // use biggest polygon for troops marker center
+        var polygon = turf.polygon(d.geometry.coordinates[index]);
+        var centroid = turf.centerOfMass(polygon);
+
+        geojsonFeatureMarker = {
+            "type": "Feature",
+            "properties": {
+                "number": d.properties.troops
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": centroid.geometry.coordinates
+            }
+        };
+    }
+    return geojsonFeatureMarker;
+}
+
+function onEachFeature(feature, layer) {
+    layer.on({
+        mouseover: highlightFeature,
+        mouseout: resetHighlight,
+        click: zoomToFeature
+    });
+
+}
 
 // This function instantiates the map after the New Game button is pressed. 
 function mapInit() {
@@ -98,7 +192,7 @@ function mapInit() {
         markerStates.push(getTroopsMarker(statesData.features[i]));
 
     }
-    
+
     markers = L.geoJson(markerStates, {
         style: function (feature) {
 
@@ -121,15 +215,124 @@ function mapInit() {
     deployTroopsNum(actualTurn);
 }
 
+// ------------------------ BUTTONS ------------------------
 
-// Utility functions for PHASE of game and TURN changes.
+// New game button event handler - transition between game menu and game map
+$("#new-game-button").click(function () {
+    document.getElementById("game-menu").style.display = "none";
+    document.getElementById("map-container").style.display = "inline";
+    mapInit();
+})
+
+// spinning of the options button
+$(".gear").hover(function () {
+    $("#gear-icon").addClass("fa-spin");
+    $("#gear-icon").css("color", "#39ffff");
+
+})
+
+// spinning of the options button
+$(".gear").mouseleave(function () {
+    $("#gear-icon").removeClass("fa-spin");
+    $("#gear-icon").css("color", "rgb(181, 240, 255)");
+})
+
+// change turn button click event handler
+$(".wrapper").click(function () {
+    whichPhaseItIs();
+})
+
+// accept moving troops
+$("#forward-button").click(function () {
+
+    markers._layers[getMarkerId(prevSelectedMarkerId)]._icon.innerHTML = parseInt(markers._layers[getMarkerId(prevSelectedMarkerId)]._icon.innerHTML)
+        - parseInt(document.getElementById("fortify-slider").value);
+
+    var message = { originTerritoryId: prevSelectedMarkerId, finalTerritoryId: selectedMarkerId, numOfTroops: parseInt(document.getElementById("fortify-slider").value) };
+    $.ajax({
+        method: "POST",
+        url: "Feature/MoveTroopToTerritory",
+        data: JSON.stringify(message),
+        contentType: "application/json",
+        dataType: "json",
+        success: function (response) {
+            console.log('Action1 - success', response);
+        },
+        error: function (response) {
+            console.warn('Send - error', response);
+        }
+    });
+    markers._layers[getMarkerId(selectedMarkerId)]._icon.innerHTML = parseInt(markers._layers[getMarkerId(selectedMarkerId)]._icon.innerHTML)
+        + parseInt(document.getElementById("fortify-slider").value);
+    document.getElementById("fortify-slider-container").style.display = "none";
+    selectedMarkerId = -1;
+    prevSelectedMarkerId = -1;
+    document.getElementById("slider_value").value = 0;
+    mymap.dragging.enable();
+
+})
+
+// decline moving troops
+$("#cross-button").click(function () {
+    selectedMarkerId = -1;
+    prevSelectedMarkerId = -1;
+    document.getElementById("fortify-slider-container").style.display = "none";
+    document.getElementById("slider_value").value = 0;
+    mymap.dragging.enable();
+})
+
+
+// ------------------------ UI UTILITY FUNCTIONS ------------------------
+
+//Updates UI - changes colors of bars, changes phase label and modifies turn variables
+function whichPhaseItIs(listOfTurns) {
+    changeColor("gray");
+    if ($("#deploy-turn-label").hasClass('active')) {
+        if (isDeployFinished() == 1) {
+            $("#deploy-turn-label").removeClass('active');
+            $("#attk-turn-label").addClass('active');
+            changePhaseName("Attack");
+            document.getElementById("troop-count-container").style.display = "none";
+        }
+        else {
+            alert("You have troops left to deploy.")
+        }
+        
+
+    }
+    else if ($("#attk-turn-label").hasClass('active')) {
+        if (arrow != null) {
+            mymap.removeLayer(arrow);
+            mymap.removeLayer(arrowHead);
+        }
+        $("#attk-turn-label").removeClass('active');
+        $("#fortify-turn-label").addClass('active');
+        changePhaseName("Fortify");
+
+    }
+    else if ($("#fortify-turn-label").hasClass('active')) {
+
+        $("#fortify-turn-label").removeClass('active');
+        $("#deploy-turn-label").addClass('active');
+        actualTurn = ((actualTurn != listOfPlayers.length - 1) ? actualTurn + 1 : 0);
+        changePhaseName("Deploy");
+        document.getElementById("troop-count-container").style.display = "flex";
+        deployTroopsNum(actualTurn);
+
+    }
+
+    changeColor(listOfPlayers[actualTurn].Color);
+    changePlayersName(listOfPlayers[actualTurn].Name);
+}
+
+// Utility functions used in a function whichPhaseItis
 function changeColor(playerColor) {
     var cols = document.getElementsByClassName('active');
     var gearCol = document.getElementsByClassName('gear');
     var wraperCol = document.getElementsByClassName('wrapper');
     var turnCol = document.getElementsByClassName('turn-container');
     var personBkg = document.getElementsByClassName('turn-info');
-    //var troopcounter = document.getElementsByClassName('turn-info');
+    
     for (i = 0; i < cols.length; i++) {
         cols[i].style.backgroundColor = playerColor;
     }
@@ -138,16 +341,20 @@ function changeColor(playerColor) {
     turnCol[0].style.borderColor = playerColor;
     personBkg[0].style.backgroundColor = playerColor;
 }
+
 function changePlayersName(player) {
     var pNameContainer = document.getElementById("turn-info-person");
     pNameContainer.innerHTML = player;
 }
+
 function changePhaseName(phase) {
     var phaseContainer = document.getElementById("phase-info");
     phaseContainer.innerHTML = phase;
 }
 
-// Troops number for deploy
+
+
+// Used in DEPLOY phase: Gets troops number for deployment
 function deployTroopsNum(Id) {
 
     $.ajax({
@@ -167,10 +374,12 @@ function deployTroopsNum(Id) {
     })
 }
 
+// Function that gets number of soldiers from marker
 function getPolygonTroops(marker_id) {
     return parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML);
 }
 
+// Used in DEPLOY phase: Add 1 troop to marker and server data
 function assignTroopToMarker(marker_id,e) {
     $.ajax({
         url: "Feature/GetIfValidTerritory/" + actualTurn,
@@ -207,46 +416,16 @@ function assignTroopToMarker(marker_id,e) {
     })
 }
 
-$("#forward-button").click(function () {
+function isDeployFinished() {
+    let number = parseInt(document.getElementById("troop-count").innerHTML);
+    if (number == 0)
+        return 1;
+    else
+        return 0;
 
-    markers._layers[getMarkerId(prevSelectedMarkerId)]._icon.innerHTML = parseInt(markers._layers[getMarkerId(prevSelectedMarkerId)]._icon.innerHTML)
-        - parseInt(document.getElementById("fortify-slider").value);
-     
-    var message = { originTerritoryId: prevSelectedMarkerId, finalTerritoryId: selectedMarkerId, numOfTroops: parseInt(document.getElementById("fortify-slider").value) };
-    $.ajax({
-        method: "POST",
-        url: "Feature/MoveTroopToTerritory",
-        data: JSON.stringify(message),
-        contentType: "application/json",
-        dataType: "json",
-        success: function (response) {
-            console.log('Action1 - success', response);
-        },
-        error: function (response) {
-            console.warn('Send - error', response);
-        }
-    });
-    markers._layers[getMarkerId(selectedMarkerId)]._icon.innerHTML = parseInt(markers._layers[getMarkerId(selectedMarkerId)]._icon.innerHTML)
-        + parseInt(document.getElementById("fortify-slider").value);
-    document.getElementById("fortify-slider-container").style.display = "none";
-    selectedMarkerId = -1;
-    prevSelectedMarkerId = -1;
-    document.getElementById("slider_value").value = 0;
-
-})
-
-$("#cross-button").click(function () {
-    selectedMarkerId = -1;
-    prevSelectedMarkerId = -1;
-    document.getElementById("fortify-slider-container").style.display = "none";
-    document.getElementById("slider_value").value = 0;
-
-})
-
+}
+// Used in DEPLOY phase: an utility for adding 1 to the marker and subtracting 1 from troop counter
 function addTroopsToTerritory(marker_id, e) {
-
-
-    
     //Increase troop number on marker and assign new value
     var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1;
     let number = parseInt(document.getElementById("troop-count").innerHTML) - 1;
@@ -257,7 +436,8 @@ function addTroopsToTerritory(marker_id, e) {
     
 }
 
-
+// Used in FORTIFY phase : an utility for checking if user clicked the right polygon
+// and displaying the slider
 function playerPossessPolygon(marker_id) {
     var result = false;
     $.ajax({
@@ -275,10 +455,7 @@ function playerPossessPolygon(marker_id) {
                 alert("You can only move troops on your territories!");
                 return;
             }
-            else if (marker_id == 1) {
-                alert("You can move troops only when there are at least 2 armies in origin territory.");
-                return;
-            }
+            
             else {
                 if (prevSelectedMarkerId == -1) {
                     prevSelectedMarkerId = marker_id
@@ -291,6 +468,7 @@ function playerPossessPolygon(marker_id) {
                     document.getElementById("fortify-slider").value = 0;
                     document.getElementById("slider_max").value = document.getElementById("fortify-slider").max;
                     document.getElementById("fortify-slider-container").style.display = "flex";
+                    $("#fortify-slider-container").mousedown(function () { mymap.dragging.disable(); });
 
                 }
             }
@@ -306,101 +484,9 @@ function playerPossessPolygon(marker_id) {
 
 
 
-//Updates UI - changes colors of bars, changes phase label and modifies turn variables
-function whichPhaseItIs(listOfTurns) {
-    changeColor("gray");
-    if ($("#deploy-turn-label").hasClass('active')) {
-        $("#deploy-turn-label").removeClass('active');
-        $("#attk-turn-label").addClass('active');
-        changePhaseName("Attack");
-        document.getElementById("troop-count-container").style.display = "none";
-        
-    }
-    else if ($("#attk-turn-label").hasClass('active')) {
-        if (arrow != null) {
-            mymap.removeLayer(arrow);
-            mymap.removeLayer(arrowHead);
-        }
-        $("#attk-turn-label").removeClass('active');
-        $("#fortify-turn-label").addClass('active');
-        changePhaseName("Fortify");
-        
-    }
-    else if ($("#fortify-turn-label").hasClass('active')) {
-        
-        $("#fortify-turn-label").removeClass('active');
-        $("#deploy-turn-label").addClass('active');
-        actualTurn = ((actualTurn != listOfPlayers.length - 1) ? actualTurn + 1 : 0);
-        changePhaseName("Deploy");
-        document.getElementById("troop-count-container").style.display = "flex";
-        deployTroopsNum(actualTurn);
-           
-    }
-    
-    changeColor(listOfPlayers[actualTurn].Color);
-    changePlayersName(listOfPlayers[actualTurn].Name);
-}
-
-// spinning of the options button
-$(".gear").hover(function () {
-    $("#gear-icon").addClass("fa-spin");
-    $("#gear-icon").css("color", "#39ffff");
-
-})
-// spinning of the options button
-$(".gear").mouseleave(function(){
-    $("#gear-icon").removeClass("fa-spin");
-    $("#gear-icon").css("color", "rgb(181, 240, 255)");
-})
-//change turn button click event handler
-$(".wrapper").click(function () {                        
-   whichPhaseItIs();
-})
 
 
 
-function style(feature) {
-    return {
-        fillColor: listOfPlayers[feature.properties.playerId - 1].TerritoryColor,
-        weight: 2,
-        opacity: 1,
-        color: 'white',
-        dashArray: '3',
-        fillOpacity: 0.7
-    };
-}
-
-function highlightFeature(e) {
-    var layer = e.target;
-    
-    if (parseInt(layer.feature.properties.playerId)-1 == actualTurn) {
-        layer.setStyle({
-            weight: 5,
-            color: '#666',
-            dashArray: '',
-            fillOpacity: 0.7
-        });
-        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-            layer.bringToFront();
-        }
-    }
-    
-
-   
-}
-
-function resetHighlight(e) {
-
-    if ($("#attk-turn-label").hasClass('active') && (prevSelectedPolygon != undefined || prevSelectedPolygon !=null)&&e.target.feature.id == prevSelectedPolygon.id ) {
-        console.log("here");
-    }
-    else
-    {
-        geojson.resetStyle(e.target);
-    }
-   
-    
-}
 
 // GET PROPER MARKER ID WHEN SEARCHING FROM LAYERS
 function getMarkerId(marker_id) {
@@ -408,6 +494,7 @@ function getMarkerId(marker_id) {
 }
 function replaceTroops(marker_id, num) {
     //Increase troop number on marker and assign new value
+    console.log("Marker", marker_id);
     if (marker_id != null) {
         var temp = num;
         markers._layers[getMarkerId(marker_id)]._icon.innerHTML = temp;
@@ -499,11 +586,27 @@ function zoomToFeature(e) {
         }
        
 
+        var count = 0;
 
+        for (var i = 0; i < statesData.features.length; i++) {
+
+            if (statesData.features[i].properties.playerId == e.target.feature.properties.playerId) {
+                count++;
+            }
+        }
+
+        if (count == 40) {
+            alert("GAME OVER.\n" + e.target.feature.properties.playerName + " won the war!!!");
+            location.reload(true);
+        }
     }
     else if ($("#fortify-turn-label").hasClass('active')){
         playerPossessPolygon(parseInt(e.target.feature.id));
         isStateSelected = 0;
+       
+       
+       
+
     }
     else {
         isStateSelected = 0;
@@ -513,21 +616,11 @@ function zoomToFeature(e) {
         
         
     }
-    var count = 0;
     
-    for (var i = 0; i < statesData.features.length; i++) {
-
-        if (statesData.features[i].properties.playerName == e.target.feature.properties.playerName) {
-            count++;
-        }
-    }
-    if (count == 40) {
-        alert("GAME OVER.\n" + e.target.features.properties.playerName + " won the war!!!");
-        location.reload(true);
-    }
     
     
 }
+
 var returnMatrix = [];
 function getMatrixofNgb() {
     
@@ -573,80 +666,10 @@ function getMatrixofNgb() {
         
     }
 }
-function onEachFeature(feature, layer) {
-    layer.on({
-        mouseover: highlightFeature,
-        mouseout: resetHighlight,
-        click: zoomToFeature
-    });
-  
-}
 
-function getTroopsMarker(d) {
-    var geojsonFeatureMarker;
-    if(d.geometry.type=="Polygon")
-    {
-        var polygon = turf.polygon(d.geometry.coordinates);
-        var centroid = turf.centerOfMass(polygon);
-            geojsonFeatureMarker = {
-            "type": "Feature",
-            "properties": {
-                "number": d.properties.troops
-            },
-            "geometry": {
-                "type": "Point",
-                "coordinates": centroid.geometry.coordinates
-            }
-        };
-        
-    }
-    if(d.geometry.type=="MultiPolygon")
-    {
-        // find biggest polygon
-        let max = -Infinity;
-        let index = -1;
-        d.geometry.coordinates.forEach(function(a, k){
-            if (a.length > max) {
-                max = a.length;
-                index = k;
-            }
-        });
-        // use biggest polygon for troops marker center
-        var polygon = turf.polygon(d.geometry.coordinates[index]);
-        var centroid = turf.centerOfMass(polygon);
-        
-            geojsonFeatureMarker = {
-            "type": "Feature",
-            "properties": {
-                "number": d.properties.troops
-            },
-            "geometry": {
-                "type": "Point",
-                "coordinates": centroid.geometry.coordinates
-            }
-        };
-    }
-    return geojsonFeatureMarker;            
-}
 
-function updateTerr(Id, defenderId) {
-    var js = { "attackerid": actualTurn, "defenderid": defenderId, "territoryid": Id };
-    $.ajax({
-        url: "Player/AddPlayerTerr",
-        type: "POST",
-        contentType: "application/json; charset=utf-8",
-        data: JSON.stringify(js),
-        dataType: "json",
-        success: function (response) {
-            console.log(response);
 
-        },
-        error: function (response) {
-            console.log(response);
 
-        }
-    })
-}
 
 function callAjaxfunc(target, id, currentPlayer) {
 
@@ -663,13 +686,14 @@ function callAjaxfunc(target, id, currentPlayer) {
                 target.feature.properties.playerId = JSON.parse(JSON.stringify(prevSelectedPolygon.properties.playerId));
                 target.feature.properties.troops = response[0].length;
 
-                
-
                 var marker_id1 = parseInt(target.feature.id);
                 var marker_id2 = parseInt(prevSelectedPolygon.id);
+
                 replaceTroops(marker_id1, response[0].length);
                 replaceTroops(marker_id2, 1);
+
                 prevSelectedPolygon.properties.troops = 1;
+
                 geojson.resetStyle(prevSelectedTarget);
                 geojson.resetStyle(target);
 
@@ -680,7 +704,9 @@ function callAjaxfunc(target, id, currentPlayer) {
                 var marker_id2 = parseInt(prevSelectedPolygon.id);
                 replaceTroops(marker_id1, response[1].length);
                 replaceTroops(marker_id2, 1);
-                prevSelectedPolygon.properties.troops = response[0].length;
+
+                prevSelectedPolygon.properties.troops = 1;
+
                 geojson.resetStyle(target);
                 geojson.resetStyle(prevSelectedTarget);
             }
@@ -690,7 +716,7 @@ function callAjaxfunc(target, id, currentPlayer) {
             console.warn('Send - error', response);
         }
     });
-    //updateTerr(target.feature.id, target.feature.properties.playerId);
+    
 
 }
 

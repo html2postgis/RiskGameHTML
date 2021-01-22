@@ -30,8 +30,7 @@ namespace RESTComponents.Controllers
         [HttpGet("{action}")]
         public Root GetRoot()
         {
-            
-            //return myFiler.ChangesFiler("InitialMap_copy.json");
+            myRootW.AssignRoot(new Filer().LoadFiler());
             return myRootW.GetRoot();
         }
         // GET: api/<DiceController>
@@ -96,12 +95,5 @@ namespace RESTComponents.Controllers
             return 1;
         }
     }
-    public class Message
-    {
-        
-        public int originTerritoryId { get; set; }
-        public int finalTerritoryId { get; set; }
-        public int numOfTroops { get; set; }
-
-    }
+    
 }
