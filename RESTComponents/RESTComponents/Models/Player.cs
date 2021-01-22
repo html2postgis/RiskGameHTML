@@ -33,6 +33,7 @@ namespace RESTComponents.Models
         public int playerId { get; set; }
     }
 
+   
     public class Geometry
     {
         public string type { get; set; }
@@ -53,5 +54,21 @@ namespace RESTComponents.Models
         public List<Feature> features { get; set; }
     }
 
+    public class RootWrapper:IRoot
+    {
+        public Root myRoot { get; set; }
+        public RootWrapper()
+        {
+            myRoot = new Filer().LoadFiler();
+        }
+        public Root GetRoot()
+        {
+            return myRoot;
+        }
+    }
+    public interface IRoot
+    {
+        public Root GetRoot();
 
+    }
 }

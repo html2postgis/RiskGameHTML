@@ -5,14 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="posqwerty2.json" />
+    <Content Remove="InitialMap.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="posqwerty2.json" />
+    <None Include="InitialMap.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nancy" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 

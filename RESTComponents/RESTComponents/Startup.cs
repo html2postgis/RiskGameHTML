@@ -30,7 +30,8 @@ namespace RESTComponents
             services.AddControllers();
             services.AddSingleton<IPlayerList, PlayerList>();
             services.AddSingleton<ITerritoryList, TerritoryList>();
-
+            services.AddSingleton<IRoot, RootWrapper>();
+           
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

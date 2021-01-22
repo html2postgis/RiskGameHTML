@@ -178,11 +178,31 @@ namespace RESTComponents.Helpers
 			return dic.Values.ToList();
 
 		}
-		public int countTerritories(Root root, int playerID)
+		public int countTerritories(Root root, int playerId)
         {
 			
-			var counts = root.features.FindAll(x => x.properties.playerId==playerID);
+			var counts = root.features.FindAll(x => x.properties.playerId==playerId);
 			return counts.Count;
+		}
+		public List<Feature> selectPlayersTerritories(Root root, int playerId, int territoryId)
+		{
+
+			var counts = root.features.FindAll(x => x.properties.playerId == playerId);
+			
+			return counts;
+		}
+		public void AddTroop(Root root, int territoryId)
+        {
+			int tmp = root.features[territoryId-1].properties.troops + 1;
+			root.features[territoryId - 1].properties.troops = tmp;
+
+		}
+		public void MoveTroop(Root root, int territoryId1, int territoryId2,int num)
+		{
+			int tmp1 = root.features[territoryId1 - 1].properties.troops - num;
+			root.features[territoryId1 - 1].properties.troops = tmp1;
+			int tmp2 = root.features[territoryId2 - 1].properties.troops + num;
+			root.features[territoryId2 - 1].properties.troops = tmp2;
 		}
 	}
 

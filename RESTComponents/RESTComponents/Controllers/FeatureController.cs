@@ -10,17 +10,19 @@ using RESTComponents.Models;
 
 namespace RESTComponents.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class FeatureController : ControllerBase
     {
 
 
-        public Root myRoot;
-
-        public FeatureController()
+        public IRoot myRootW;
+        public Filer myFiler = new Filer();
+        public FeatureController(IRoot otherRoot)
         {
-            myRoot = new Filer().LoadFiler();
+            myRootW = otherRoot;
+            
+
         }
 
 
@@ -28,35 +30,78 @@ namespace RESTComponents.Controllers
         [HttpGet("{action}")]
         public Root GetRoot()
         {
-            return myRoot;
+            
+            //return myFiler.ChangesFiler("InitialMap_copy.json");
+            return myRootW.GetRoot();
         }
         // GET: api/<DiceController>
         [HttpGet("{action}")]
         public List<List<int>> GetWinner(int attackingTerritoryId, int defencingTerritoryId)
         {
-            int attackers = myRoot.features[attackingTerritoryId - 1].properties.troops;
-            int defencors = myRoot.features[defencingTerritoryId - 1].properties.troops;
+            
+            var tmpList = myRootW.GetRoot();
+            int attackers = tmpList.features[attackingTerritoryId - 1].properties.troops-1;
+            int defencors = tmpList.features[defencingTerritoryId - 1].properties.troops;
             var result = new RandomCalculator().calculateWinner(attackers, defencors);
             if(result[0].Count!=0)
             {
-                myRoot.features[defencingTerritoryId - 1].properties.playerId = myRoot.features[attackingTerritoryId-1].properties.playerId;
-                myRoot.features[defencingTerritoryId - 1].properties.troops = result[0].Count;
-                myRoot.features[attackingTerritoryId - 1].properties.troops = 1;
+                tmpList.features[defencingTerritoryId - 1].properties.playerId = tmpList.features[attackingTerritoryId-1].properties.playerId;
+                tmpList.features[defencingTerritoryId - 1].properties.troops = result[0].Count;
+                tmpList.features[attackingTerritoryId - 1].properties.troops = 1;
             }
             else
             {
-               myRoot.features[defencingTerritoryId - 1].properties.troops = result[1].Count;
-               myRoot.features[attackingTerritoryId - 1].properties.troops = 1;
+               tmpList.features[defencingTerritoryId - 1].properties.troops = result[1].Count;
+               tmpList.features[attackingTerritoryId - 1].properties.troops = 1;
             }
+
+            //new Filer().SaveFiler(tmpList);
             return result;
         }
         [HttpGet("GetTroopsLimit/{id}")]
-        public int GetTroopsLimit(int playerId)
+        public int GetTroopsLimit(int id)
         {
-            return new RandomCalculator().countTerritories(myRoot, playerId)/ 3;
+
+            //var tmpList = new Filer().ChangesFiler("InitialMap_copy.json");
+            var tmpList = myRootW.GetRoot();
+            return new RandomCalculator().countTerritories(tmpList,id+1)/ 3;
+        }
+
+        [HttpGet("GetIfValidTerritory/{id}")]
+        public List<Feature> GetIfValidTerritory(int id, int territoryId)
+        {
+            var tmpList = myRootW.GetRoot();
+            
+            return new RandomCalculator().selectPlayersTerritories(tmpList, id + 1, territoryId);
+            
+          
         }
 
 
+        [HttpPost("AddTroopToTerritory")]
+        public int AddTroopToTerritory([FromBody]int territoryId)
+        {
+            var tmpList = myRootW.GetRoot();
+            new RandomCalculator().AddTroop(tmpList, territoryId);
+            Console.WriteLine("logi ", tmpList.features[territoryId-1].properties.troops);
+            return 1;
+        }
+
+        [HttpPost("MoveTroopToTerritory")]
+        public int MoveTroopToTerritory([FromBody] Message message)
+        {
+            var tmpList = myRootW.GetRoot();
+            new RandomCalculator().MoveTroop(tmpList, message.originTerritoryId, message.finalTerritoryId, message.numOfTroops);
+            
+            return 1;
+        }
+    }
+    public class Message
+    {
+        
+        public int originTerritoryId { get; set; }
+        public int finalTerritoryId { get; set; }
+        public int numOfTroops { get; set; }
 
     }
 }

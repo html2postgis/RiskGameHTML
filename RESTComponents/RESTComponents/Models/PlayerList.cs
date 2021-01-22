@@ -9,44 +9,7 @@ using Newtonsoft.Json;
 
 namespace RESTComponents.Models
 {
-    public class Filer
-    {
-        private static string separator = ";";
-        private static string fileName = "posqwerty2.json";
-        [JsonProperty("Players")]
-        public List<Player> Players { get; set; }
-        public List<Territory> getAllPoints()
-        {
-            if (!System.IO.File.Exists(fileName))
-            {
-                return new List<Territory>();
-            }
-            List<Territory> points = System.IO.File.ReadAllLines(fileName).Select(x =>
-            {
-                var p = x.Split(separator);
-                int lat, lon;
-                Int32.TryParse(p[0], out lat);
-                Int32.TryParse(p[1], out lon);
-                return new Territory() { Id = lat, Troops = lon };
-            }).ToList();
-            return points;
-        }
-
-
-        public Root LoadFiler()
-        {
-            using (StreamReader r = new StreamReader(fileName))
-            {
-                string json = r.ReadToEnd();
-                //List<Item> items = JsonConvert.DeserializeObject<List<Item>>(json);
-                return System.Text.Json.JsonSerializer.Deserialize<Root>(json);
-            }
-           
-            
-        }
-
-
-    }
+    
 
     public class PlayerList : IPlayerList
     {

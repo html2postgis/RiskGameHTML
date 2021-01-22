@@ -16,13 +16,14 @@ const FIRST_LAYER = 109; // created to search through markers in geojson
 var PLAYER_PHASE = 0; // 0 - deployment, 1 - attack, 2 - fortify
 var TurnColors = ["red", "orange", "green"];
 var statesData;
+var actualTurn = 0;
 
 var listOfPlayers = [
     { Name: 'Player1', Troops: 27, Id: 1, Color: "red", TerritoryColor: '#d9534f' },
     { Name: 'Player2', Troops: 27, Id: 2, Color: "orange", TerritoryColor: '#f0ad4e' },
     { Name: 'Buffor', Troops: 27, Id: 3, Color: "green", TerritoryColor: '#5cb85c' }
 ];
-var actualTurn = 0;
+
 function waitForElement(response) {
     statesData = response;
     if (typeof statesData !== "undefined") {
@@ -44,7 +45,7 @@ function waitForElement(response) {
 function getStates() {
 
     $.ajax({
-        url: "Player/GetMy",
+        url: "Feature/GetRoot",
         type: "GET",
         contentType: "application/json",
 
@@ -69,7 +70,7 @@ $("#new-game-button").click(function () {
 })
 
 
-// This function instantiates the map after the New Game button is pressed. IMPORTANT - without it there are bugs in deploy phase.
+// This function instantiates the map after the New Game button is pressed. 
 function mapInit() {
 
     mymap = L.map('mapid')
@@ -91,10 +92,6 @@ function mapInit() {
         style: style,
         onEachFeature: onEachFeature
     }).addTo(mymap);
-
-
-   
-
 
     // get centers to draw markers on all polygons
     for (var i = 0; i < statesData.features.length; i++) {
@@ -121,14 +118,11 @@ function mapInit() {
             });
         }
     }).addTo(mymap);
-    GetPlayerMaxTroops(actualTurn);
+    deployTroopsNum(actualTurn);
 }
 
 
-
-
-
-
+// Utility functions for PHASE of game and TURN changes.
 function changeColor(playerColor) {
     var cols = document.getElementsByClassName('active');
     var gearCol = document.getElementsByClassName('gear');
@@ -144,7 +138,6 @@ function changeColor(playerColor) {
     turnCol[0].style.borderColor = playerColor;
     personBkg[0].style.backgroundColor = playerColor;
 }
-
 function changePlayersName(player) {
     var pNameContainer = document.getElementById("turn-info-person");
     pNameContainer.innerHTML = player;
@@ -154,11 +147,12 @@ function changePhaseName(phase) {
     phaseContainer.innerHTML = phase;
 }
 
-
-function GetPlayerMaxTroops(Id) {
+// Troops number for deploy
+function deployTroopsNum(Id) {
 
     $.ajax({
-        url: "Player/GetPlayerTroopLimit/" + Id,
+
+        url: "Feature/GetTroopsLimit/" + Id,
         type: "GET",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -179,16 +173,32 @@ function getPolygonTroops(marker_id) {
 
 function assignTroopToMarker(marker_id,e) {
     $.ajax({
-        url: "Player/GetPlayerTerList/" + actualTurn,
+        url: "Feature/GetIfValidTerritory/" + actualTurn,
         type: "GET",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
         success: function (response) {
+            console.log(response);
             for (let i = 0; i < response.length ; ++i){
                 if (marker_id == response[i].id) {
-                    addTroopsToTerritory(marker_id,e);
+                    addTroopsToTerritory(marker_id, e);
+                    
+                    $.ajax({
+                        method: "POST",
+                        url: "Feature/AddTroopToTerritory",
+                        data: JSON.stringify(parseInt(e.target.feature.id)),
+                        contentType: "application/json",
+                        dataType: "json",
+                        success: function (response) {
+                            console.log('Action1 - success', response);
+                        },
+                        error: function (response) {
+                            console.warn('Send - error', response);
+                        }
+                    });
                 }
             }
+
         },
         error: function (response) {
             console.warn('error', response);
@@ -198,9 +208,24 @@ function assignTroopToMarker(marker_id,e) {
 }
 
 $("#forward-button").click(function () {
+
     markers._layers[getMarkerId(prevSelectedMarkerId)]._icon.innerHTML = parseInt(markers._layers[getMarkerId(prevSelectedMarkerId)]._icon.innerHTML)
         - parseInt(document.getElementById("fortify-slider").value);
-
+     
+    var message = { originTerritoryId: prevSelectedMarkerId, finalTerritoryId: selectedMarkerId, numOfTroops: parseInt(document.getElementById("fortify-slider").value) };
+    $.ajax({
+        method: "POST",
+        url: "Feature/MoveTroopToTerritory",
+        data: JSON.stringify(message),
+        contentType: "application/json",
+        dataType: "json",
+        success: function (response) {
+            console.log('Action1 - success', response);
+        },
+        error: function (response) {
+            console.warn('Send - error', response);
+        }
+    });
     markers._layers[getMarkerId(selectedMarkerId)]._icon.innerHTML = parseInt(markers._layers[getMarkerId(selectedMarkerId)]._icon.innerHTML)
         + parseInt(document.getElementById("fortify-slider").value);
     document.getElementById("fortify-slider-container").style.display = "none";
@@ -218,7 +243,10 @@ $("#cross-button").click(function () {
 
 })
 
-function addTroopsToTerritory(marker_id,e) {
+function addTroopsToTerritory(marker_id, e) {
+
+
+    
     //Increase troop number on marker and assign new value
     var temp = parseInt(markers._layers[getMarkerId(marker_id)]._icon.innerHTML) + 1;
     let number = parseInt(document.getElementById("troop-count").innerHTML) - 1;
@@ -233,7 +261,7 @@ function addTroopsToTerritory(marker_id,e) {
 function playerPossessPolygon(marker_id) {
     var result = false;
     $.ajax({
-        url: "Player/GetPlayerTerList/" + actualTurn,
+        url: "Feature/GetIfValidTerritory/" + actualTurn,
         type: "GET",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
@@ -255,12 +283,15 @@ function playerPossessPolygon(marker_id) {
                 if (prevSelectedMarkerId == -1) {
                     prevSelectedMarkerId = marker_id
                 }
+                
                 else if (selectedMarkerId == -1 && marker_id != prevSelectedMarkerId) {
                     selectedMarkerId = marker_id;
+                    
                     document.getElementById("fortify-slider").max = (getPolygonTroops(prevSelectedMarkerId) - 1);
                     document.getElementById("fortify-slider").value = 0;
                     document.getElementById("slider_max").value = document.getElementById("fortify-slider").max;
                     document.getElementById("fortify-slider-container").style.display = "flex";
+
                 }
             }
         },
@@ -302,7 +333,7 @@ function whichPhaseItIs(listOfTurns) {
         actualTurn = ((actualTurn != listOfPlayers.length - 1) ? actualTurn + 1 : 0);
         changePhaseName("Deploy");
         document.getElementById("troop-count-container").style.display = "flex";
-        GetPlayerMaxTroops(actualTurn);
+        deployTroopsNum(actualTurn);
            
     }
     
@@ -621,9 +652,9 @@ function callAjaxfunc(target, id, currentPlayer) {
 
     $.ajax({
         method: "GET",
-        url: "Dice/GetWinner2",
+        url: "Feature/GetWinner",
         contentType: "application/json",
-        data: { attackers: parseInt(prevSelectedPolygon.properties.troops) - 1, defencors: parseInt(target.feature.properties.troops) },
+        data: { attackingTerritoryId: parseInt(prevSelectedPolygon.id),defencingTerritoryId:parseInt(target.feature.id) },
         dataType: "json",
         success: function (response) {
             console.log(response);
