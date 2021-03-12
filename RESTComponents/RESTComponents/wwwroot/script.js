@@ -4,6 +4,7 @@ var isStateSelected = 0;
 var prevSelectedPolygon;
 var prevSelectedTarget;
 var prevSelectedPoint;
+var prevSelectedTarget;
 var geojson;
 var markers;
 var arrow = null;
@@ -191,7 +192,6 @@ function onEachFeature(feature, layer) {
 
 // This function instantiates the map after the New Game button is pressed. 
 function mapInit() {
-
     mymap = L.map('mapid')
         .setView([37.8, -96], 3.5);
     // setting bounds(disallowing moving outside of the US)
@@ -361,6 +361,7 @@ function whichPhaseItIs(listOfTurns) {
 
     }
     else if ($("#attk-turn-label").hasClass('active')) {
+        console.log("attack");
         if (arrow != null) {
             mymap.removeLayer(arrow);
             mymap.removeLayer(arrowHead);
@@ -788,3 +789,46 @@ function callAjaxfunc(target, id, currentPlayer) {
 }
 
 
+var golbal1;
+function assinger(id,callback) {
+  
+}
+function callAjaxfunc(target,id,currentPlayer) {
+    $.ajax({
+    method: "GET",
+    url: "Dice/GetWinner2",
+    contentType: "application/json",
+        data: { attackers: parseInt(prevSelectedPolygon.properties.troops)-1 ,defencors: parseInt(target.feature.properties.troops)},
+    dataType: "json",
+        success: function (response) {
+            console.log(response);
+            if (response[0] != 0) {
+
+                target.feature.properties.playerName = JSON.parse(JSON.stringify(currentPlayer.innerHTML));
+                target.feature.properties.playerId = JSON.parse(JSON.stringify(prevSelectedPolygon.properties.playerId));
+                target.feature.properties.troops = response[0].length;
+              
+                var marker_id1 = parseInt(target.feature.id);
+                var marker_id2 = parseInt(prevSelectedPolygon.id);
+                replaceTroops(marker_id1, response[0].length);
+                replaceTroops(marker_id2, 1);
+                prevSelectedPolygon.properties.troops = 1;
+                geojson.resetStyle(target);
+                geojson.resetStyle(prevSelectedTarget);
+                console.log(target);
+                console.log("moj",prevSelectedTarget);
+
+                //markers._layers[getMarkerId(parseInt(id))]._icon.innerHTML = response[0].length;
+            }
+            else {
+
+            }
+           // markers._layers[getMarkerId(parseInt(id))]._icon.innerHTML = response
+            
+    },
+    error: function (response) {
+        console.warn('Send - error', response);
+    }
+});
+      
+}
