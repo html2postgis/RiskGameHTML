@@ -37,7 +37,7 @@ function waitForElement(response) {
         //variable exists, do what you want
         $("#new-game-button").attr("disabled", false);
         for (var i = 0; i < statesData.features.length; i++) {
-            //console.log(statesData.features[i]);
+           
 
             var tmpId = statesData.features[i].properties.playerId;
 
