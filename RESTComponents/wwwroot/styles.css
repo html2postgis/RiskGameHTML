@@ -159,6 +159,7 @@ img {
 
 
 .game-body {
+    height:100%;
     margin: 50px;
 }
 
@@ -171,11 +172,12 @@ img {
 }
 
 #map-container {
+    height: 100%;
     display: none;
 }
 
 #mapid {
-    height: 840px;
+    height:80vh;
     display: flex;
     flex-direction: column;
     align-items: center;
