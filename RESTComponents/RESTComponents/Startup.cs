@@ -28,8 +28,11 @@ namespace RESTComponents
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddSingleton<IPlayerList, PlayerList>();
-            services.AddSingleton<ITerritoryList, TerritoryList>();
+            //services.AddSingleton<IPlayerList, PlayerList>();
+            //services.AddSingleton<ITerritoryList, TerritoryList>();
+            services.AddSingleton<IRoot, RootWrapper>();
+            
+
 
         }
 

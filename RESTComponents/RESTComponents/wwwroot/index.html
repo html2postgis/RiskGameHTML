@@ -34,16 +34,43 @@
                     <img id="logo" src="Logo.png">
                 </div>
                 <div class="btn-group">
-                    <button class="menu-button" id="new-game-button" value="new game" type="button">new game</button><br>
-                    <button class="menu-button" type="button" value="tutorial">tutorial</button>
+                    <button class="menu-button" id="resume-button" value="resume game" type="button" >resume game</button><br>
+                    <button class="menu-button" id="new-game-button" value="new game" type="button" disabled>new game</button><br>
+                    <button class="menu-button" id="tutorial-button" type="button" value="tutorial">tutorial</button>
+                </div>
+            </div>
+            <div id="tutorial-container">
+                <div class="back-button-container">
+                    <button id="previous-button">&laquo;</button>
+                </div>
+                <div class="pdf-container">
+                    <embed src="Rules.pdf" width="800" height="800" />
                 </div>
             </div>
             <div id="map-container">
                 <div id="mapid">
-                    <div id="troop-count-container" class="leaflet-top">
-                        <span class="troop-label">TROOPS LEFT:&nbsp</span>
-                        <span id="troop-count" class="troop-label">10</span>
+                    <div id="fortify-slider-container">
+                        <div class="troops-span">
+                            <span class="troops-text">Choose the number of troops to relocate.</span>
+                        </div>
+                        <div class="buttons-holder">
+                            <button id="cross-button"></button>
+                            <div class="slider-cont">
+                                <input id="fortify-slider" type="range" value="0" max="10" min="0" oninput="slider_value.value = this.value">
+                                <div id="output-container">
+                                    <output id="slider_min">0</output>
+                                    <output id="slider_value">0</output>
+                                    <output id="slider_max">5</output>
+                                </div>
+                            </div>
+                            <button id="forward-button"></button>
+                        </div>
                     </div>
+                    <div id="troop-count-container" class="leaflet-top troop-counter">
+                        <span class="troop-label">TROOPS LEFT:&nbsp</span>
+                        <span id="troop-count" class="troop-label"></span>
+                    </div>
+                    
                     <div class="nav-buttons leaflet-bottom">
                         <div class="gear leaflet-control">
                             <button id="options"><i id="gear-icon" style="font-size:80px; margin-top:4px;margin-left: 15px; color: rgb(181, 240, 255);" class="fa">&#xf013;</i></button>
@@ -80,7 +107,6 @@
             </div>
         </div>
         <script src="us-states.js"></script>
-        <script src="initialRequests.js"></script>
         <script src="script.js"></script>
     </body>
 </html>
